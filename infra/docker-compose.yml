@@ -63,7 +63,7 @@ services:
     ports:
       - "${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}"
     volumes:
-      - ./db/postgres/data:/var/lib/postgresql/data
+      - ./postgres/db:/var/lib/postgresql/db
     networks:
       - MatchingFit_network
     healthcheck:
@@ -82,7 +82,7 @@ services:
     volumes:
       - ./elasticsearch/data:/usr/share/elasticsearch/data
     ports:
-      - "${ES_INTERNAL_PORT}:${ES_EXTERNAL_PORT}"
+      - "${ES_EXTERNAL_PORT}:${ES_INTERNAL_PORT}"
     networks:
       - MatchingFit_network
     healthcheck:
@@ -97,7 +97,7 @@ services:
     depends_on:
       - elasticsearch
     ports:
-      - "${KIBANA_INTERNAL_PORT}:${KIBANA_EXTERNAL_PORT}"
+      - "${KIBANA_EXTERNAL_PORT}:${KIBANA_INTERNAL_PORT}"
     networks:
       - MatchingFit_network
     environment:
