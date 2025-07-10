@@ -109,7 +109,7 @@ public class UserService {
                 return rq.makeAuthCookie(user);
             }
         }
-        throw new BadCredentialsException("Invalid email or password");
+        throw new BadCredentialsException("유효하지 않은 이메일 또는 비밀번호입니다.");
     }
 
     @Transactional

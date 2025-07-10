@@ -13,7 +13,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -37,9 +39,15 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequestDto user){
-        String token = userService.login(user.getEmail(), user.getPassword());
-        return ResponseEntity.ok(ApiResponse.success(token, "login success"));
+    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequestDto user) {
+        try {
+            String token = userService.login(user.getEmail(), user.getPassword());
+            return ResponseEntity.ok(ApiResponse.success(token, "login success"));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.fail(e.getMessage()));
+        }
     }
 
     @DeleteMapping("/logout")
