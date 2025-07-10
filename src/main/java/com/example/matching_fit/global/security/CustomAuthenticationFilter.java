@@ -27,13 +27,10 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
     private AuthTokens getAuthTokensFromRequest() {
         String authorization = rq.getHeader("Authorization");
-//        log.info("authorization {}", authorization);
         if (authorization != null && authorization.startsWith("Bearer ")) {
-            String token = authorization.substring("Bearer ".length());
-            String[] tokenBits = token.split(" ", 2);
-
-            if (tokenBits.length == 2)
-                return new AuthTokens(tokenBits[0], tokenBits[1]);
+            String accessToken = authorization.substring("Bearer ".length()).trim();
+            String refreshToken = rq.getCookieValue("refreshToken");
+            return new AuthTokens(refreshToken, accessToken);
         }
 
         String refreshToken = rq.getCookieValue("refreshToken");
@@ -48,7 +45,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
     private void refreshAccessToken(User user) {
         String newAccessToken = userService.genAccessToken(user);
-        rq.setHeader("Authorization", "Bearer " + user.getRefreshToken() + " " + newAccessToken);
+        rq.setHeader("Authorization", "Bearer " + user.getRefreshToken());
         rq.setCookie("accessToken", newAccessToken);
     }
 
