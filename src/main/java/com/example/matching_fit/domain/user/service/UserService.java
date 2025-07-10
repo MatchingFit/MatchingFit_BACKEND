@@ -113,12 +113,13 @@ public class UserService {
     }
 
     @Transactional
-    public void modify(User member, @NotBlank String nickname) {
+    public void modify(User member, @NotBlank String nickname, String kakaoId) {
         member.setName(nickname);
+        member.setKakaoId(kakaoId);
     }
 
     @Transactional
-    public User kakaoJoin(String name, String email, LoginType provider) {
+    public User kakaoJoin(String name, String email, LoginType provider, String kakaoId) {
         try {
             log.info("OAuth2 회원가입 처리 시작 - email: {}, name: {}, provider: {}", email, name, provider);
 
@@ -136,6 +137,7 @@ public class UserService {
                     .refreshToken(UUID.randomUUID().toString())
                     .role(Role.USER)   // Set<Role> 아님, 단일 Role 필드
                     .loginType(provider)
+                    .kakaoId(kakaoId)
                     .build();
 
             User savedUser = userRepository.save(member);
@@ -151,16 +153,16 @@ public class UserService {
 
 
     @Transactional
-    public User modifyOrJoin(String username, String nickname) {
+    public User modifyOrJoin(String username, String nickname, String kakaoId) {
         Optional<User> opMember = findByEmail(username);
 
         if (opMember.isPresent()) {
             User member = opMember.get();
-            modify(member, nickname);
+            modify(member, nickname, kakaoId);
             return member;
         }
 
-        return kakaoJoin(nickname, username, LoginType.KAKAO);
+        return kakaoJoin(nickname, username, LoginType.KAKAO, kakaoId);
     }
 
 

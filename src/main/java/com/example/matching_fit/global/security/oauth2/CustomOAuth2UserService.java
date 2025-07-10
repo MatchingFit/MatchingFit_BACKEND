@@ -32,8 +32,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, String> attributesProperties = (Map<String, String>) attributes.get("properties");
         String nickname = attributesProperties.get("nickname");
 //        String profileImgUrl = attributesProperties.get("profile_image");
-        String username = providerTypeCode + "__" + oauthId; //성공하면 이메일(email)로 변경 예정
-        User user = userService.modifyOrJoin(username, nickname);
+        Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        String email = (String) kakaoAccount.get("email");
+        String kakaoId = providerTypeCode + "__" + oauthId; //성공하면 이메일(email)로 변경 예정
+        User user = userService.modifyOrJoin(email, nickname, kakaoId);
         return new SecurityUser(
                 user.getId(),
                 user.getEmail(),
