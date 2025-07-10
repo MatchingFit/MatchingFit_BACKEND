@@ -1,3 +1,5 @@
+server:
+  port: ${LOCAL_SERVER_PORT}
 spring:
   application:
     name: matchingfit
@@ -10,6 +12,22 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            clientId: ${KAKAO_CLIENT_ID}
+            scope: profile_nickname
+            client-name: Kakao
+            authorization-grant-type: authorization_code
+            redirect-uri: "${custom.site.backUrl}/{action}/oauth2/code/{registrationId}"
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
 
   jpa:
     hibernate:
@@ -24,3 +42,38 @@ spring:
   sql:
     init:
       mode: always               # schema.sql, data.sql 자동 실행 여부
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: taeyun30504@gmail.com
+    password: ubea zpee qchl ekjh
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+custom:
+  dev:
+    cookieDomain: localhost
+    frontUrl: "http://${custom.dev.cookieDomain}:3000"
+    backUrl: "http://${custom.dev.cookieDomain}:${server.port}"
+  prod:
+    cookieDomain: ""
+    frontUrl: "https://www.${custom.prod.cookieDomain}"
+    backUrl: "https://api.${custom.prod.cookieDomain}"
+  site:
+    name: "BLOG DEV"
+    cookieDomain: "${custom.dev.cookieDomain}"
+    frontUrl: "${custom.dev.frontUrl}"
+    backUrl: "${custom.dev.backUrl}"
+  jwt:
+    secretKey: ${JWT_SECRET_KEY}
+  accessToken:
+    expirationSeconds: 3600
+
+
+cookie:
+  domain: "localhost"

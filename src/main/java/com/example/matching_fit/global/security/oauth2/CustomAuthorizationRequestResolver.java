@@ -1,7 +1,6 @@
-package com.example.matching_fit.global.security;
+package com.example.matching_fit.global.security.oauth2;
 
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
@@ -12,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Slf4j
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
     private final DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 
@@ -33,7 +31,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     }
 
     private OAuth2AuthorizationRequest customizeAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request) {
-        if (authorizationRequest == null || request == null ) {
+        if (authorizationRequest == null || request == null) {
             return null;
         }
 
@@ -43,7 +41,6 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
         if (redirectUrl != null && !redirectUrl.isEmpty()) {
             additionalParameters.put("state", redirectUrl);
         }
-        log.info("redirectUrl : {}", redirectUrl);
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
                 .additionalParameters(additionalParameters)

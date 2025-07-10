@@ -25,7 +25,7 @@ public class Rq {
     private final HttpServletRequest req;
     private final HttpServletResponse resp;
     private final UserService userService;
-    @Value("${cookie.domain}")
+    @Value("${custom.dev.cookieDomain}")
     private String cookieDomain;
 
     public void setLogin(User user) {

@@ -2,8 +2,7 @@ package com.example.matching_fit.global.config.security;
 
 import com.example.matching_fit.global.security.CustomAuthenticationEntryPoint;
 import com.example.matching_fit.global.security.CustomAuthenticationFilter;
-import com.example.matching_fit.global.security.CustomAuthorizationRequestResolver;
-import com.example.matching_fit.global.security.oauth2.CustomOAuth2AuthenticationFailureHandler;
+import com.example.matching_fit.global.security.oauth2.CustomAuthorizationRequestResolver;
 import com.example.matching_fit.global.security.oauth2.CustomOAuth2AuthenticationSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,10 +29,10 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true) // @PreAuthorize, @PostAuthorize 활성화
 public class SecurityConfig {
     private final CustomAuthenticationFilter customAuthenticationFilter;
-    private final CustomOAuth2AuthenticationSuccessHandler customOauth2AuthenticationSuccessHandler;
-    private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-    private final CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler;
+    private final CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler;
+    private final CustomAuthorizationRequestResolver customAuthorizationRequestResolver;
+
     //통과 시킬꺼 넣어야함
 
     @Bean
@@ -68,15 +67,15 @@ public class SecurityConfig {
                 .sessionManagement((sessionManagement) -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .oauth2Login( oauth2Login ->
+                .oauth2Login(
+                        oauth2Login ->
                         oauth2Login
-                                .successHandler(customOauth2AuthenticationSuccessHandler)
-                                .failureHandler(customOAuth2AuthenticationFailureHandler)
-                                .authorizationEndpoint(authorizationEndpoint ->
-                                        authorizationEndpoint
-                                                .authorizationRequestResolver(customAuthorizationRequestResolver)
+                                .successHandler(customOAuth2AuthenticationSuccessHandler)
+                                .authorizationEndpoint(
+                                        authorizationEndpoint ->
+                                                authorizationEndpoint
+                                                        .authorizationRequestResolver(customAuthorizationRequestResolver)
                                 )
-
                 )
                 .exceptionHandling(ex ->
                         ex.authenticationEntryPoint(customAuthenticationEntryPoint)

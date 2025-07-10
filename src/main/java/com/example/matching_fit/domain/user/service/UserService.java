@@ -3,21 +3,23 @@ package com.example.matching_fit.domain.user.service;
 import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
+import com.example.matching_fit.domain.user.enums.Role;
 import com.example.matching_fit.domain.user.repository.UserRepository;
 import com.example.matching_fit.global.security.rq.Rq;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -31,11 +33,14 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public Optional<User> findByNickname(String nickname) {
+    public Optional<User> findByName(String nickname) {
         return userRepository.findByName(nickname);
     }
 
 
+    public String genAuthToken(User member) {
+        return member.getRefreshToken() + " " + genAccessToken(member);
+    }
     public Optional<User> findById(long authorId) {
         return userRepository.findById(authorId);
     }
@@ -107,10 +112,65 @@ public class UserService {
         throw new BadCredentialsException("Invalid email or password");
     }
 
+    @Transactional
+    public void modify(User member, @NotBlank String nickname) {
+        member.setName(nickname);
+    }
+
+    @Transactional
+    public User kakaoJoin(String name, String email, LoginType provider) {
+        try {
+            log.info("OAuth2 회원가입 처리 시작 - email: {}, name: {}, provider: {}", email, name, provider);
+
+            // 사용자명 중복 체크
+            userRepository.findByName(name).ifPresent(member -> {
+                log.warn("OAuth2 회원가입 실패 - 이미 존재하는 사용자명: {}", name);
+                throw new RuntimeException("해당 username은 이미 사용중입니다.");
+            });
+
+            // User 생성 - 엔티티 필드에 맞게 단일 Role만 설정
+            User member = User.builder()
+                    .name(name)
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .email(email)
+                    .refreshToken(UUID.randomUUID().toString())
+                    .role(Role.USER)   // Set<Role> 아님, 단일 Role 필드
+                    .loginType(provider)
+                    .build();
+
+            User savedUser = userRepository.save(member);
+            log.info("OAuth2 회원가입 성공 - userId: {}, email: {}", savedUser.getId(), savedUser.getEmail());
+
+            return savedUser;
+        } catch (Exception e) {
+            log.error("OAuth2 회원가입 처리 중 오류 발생", e);
+            throw e;
+        }
+    }
+
+
+
+    @Transactional
+    public User modifyOrJoin(String username, String nickname) {
+        Optional<User> opMember = findByEmail(username);
+
+        if (opMember.isPresent()) {
+            User member = opMember.get();
+            modify(member, nickname);
+            return member;
+        }
+
+        return kakaoJoin(nickname, username, LoginType.KAKAO);
+    }
+
 
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
 
 
+
+
+
 }
+

@@ -12,6 +12,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -54,5 +55,11 @@ public class User{
                 .stream()
                 .map((name) -> new SimpleGrantedAuthority("ROLE_" + name))
                 .toList();
+    }
+
+    public List<String> getAuthoritiesAsStringList() {
+        List<String> authorities = new ArrayList<>();
+
+        return authorities;
     }
 }

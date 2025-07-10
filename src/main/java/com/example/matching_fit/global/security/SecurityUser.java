@@ -11,14 +11,13 @@ import java.util.Map;
 public class SecurityUser extends User implements OAuth2User {
     @Getter
     private long id;
-    @Getter
     private String name;
 
     public SecurityUser(
             long id,
-            String email,
+            String email, //username
             String password,
-            String name,
+            String name, //nickname
             Collection<? extends GrantedAuthority> authorities
     ) {
         super(email, password, authorities);
