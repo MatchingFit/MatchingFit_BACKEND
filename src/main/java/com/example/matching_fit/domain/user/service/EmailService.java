@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
@@ -17,7 +18,7 @@ public class EmailService {
 
     private final RedisTemplate<String, String> redisTemplate;
 
-
+    @Transactional
     public void sendVerificationEmail(String email) {
         try {
             String code = generateRandomCode();
@@ -41,6 +42,7 @@ public class EmailService {
         redisTemplate.opsForValue().set(email, code, Duration.ofMinutes(3));
     }
 
+    @Transactional
     public boolean verifyCode(String email, String code) {
         String savedCode = redisTemplate.opsForValue().get(email);
         return code.equals(savedCode);
@@ -49,4 +51,5 @@ public class EmailService {
     public String generateRandomCode() {
         return String.valueOf((int)(Math.random() * 899999) + 100000); // 6자리 숫자
     }
+
 }

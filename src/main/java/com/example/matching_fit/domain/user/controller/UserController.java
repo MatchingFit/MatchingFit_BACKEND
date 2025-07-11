@@ -30,12 +30,19 @@ public class UserController {
     private final UserService userService;
     private final Rq rq;
 
-    @PostMapping("/join")//리플래시토큰과 쿠키 생성이 필요함
-    public ResponseEntity<ApiResponse<String>> joinUser(@RequestBody @Valid UserJoinRequestDto userJoinRequestDto){
-        User join = userService.join(userJoinRequestDto, LoginType.LOCAL);
-        ApiResponse<String> joinSuccess = ApiResponse.success( join.getEmail(),"join success");
-
-        return ResponseEntity.ok(joinSuccess);
+    @PostMapping("/join")
+    public ResponseEntity<ApiResponse<String>> joinUser(@RequestBody UserJoinRequestDto userJoinRequestDto) {
+        try {
+            User join = userService.join(userJoinRequestDto, LoginType.LOCAL);
+            ApiResponse<String> joinSuccess = ApiResponse.success(join.getEmail(), "회원가입 성공");
+            return ResponseEntity.ok(joinSuccess);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<String> errorResponse = ApiResponse.fail(e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            ApiResponse<String> errorResponse = ApiResponse.fail("알 수 없는 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
     }
 
     @PostMapping("/login")
