@@ -80,9 +80,9 @@ public class UserService {
         }
 
         // 닉네임 중복 검사
-        if (userRepository.existsByName(name)) {
-            throw new IllegalArgumentException("이미 사용중인 nickname 입니다.");
-        }
+//        if (userRepository.existsByName(name)) {
+//            throw new IllegalArgumentException("이미 사용중인 nickname 입니다.");
+//        }
 
 
         // 비밀번호 & 비밀번호 확인 일치 여부 검사
@@ -107,7 +107,10 @@ public class UserService {
     }
 
     private boolean isValidPassword(String password) {
-        String passwordPattern = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{10,}$";
+        // 영문/숫자/특수문자 중 2가지 이상, 10자 이상
+        String passwordPattern = "^(?=.*[A-Za-z].*)(?=.*\\d.*|.*[!@#$%^&*()\\-_=+\\[\\]{};:'\",.<>/?`~].*).{10,}$"
+                + "|^(?=.*\\d.*)(?=.*[!@#$%^&*()\\-_=+\\[\\]{};:'\",.<>/?`~].*).{10,}$"
+                + "|^(?=.*[A-Za-z].*)(?=.*[!@#$%^&*()\\-_=+\\[\\]{};:'\",.<>/?`~].*).{10,}$";
         return password.matches(passwordPattern);
     }
 
