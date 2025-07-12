@@ -25,6 +25,17 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     record AuthTokens(String refreshToken, String accessToken) {
     }
 
+    // ✅ Swagger 관련 경로 예외 처리
+    private boolean isSwaggerRequest(String uri) {
+        return uri.startsWith("/swagger-ui")
+                || uri.startsWith("/v3/api-docs")
+                || uri.startsWith("/swagger-resources")
+                || uri.startsWith("/webjars")
+                || uri.startsWith("/v2/api-docs")
+                || uri.contains("swagger")
+                || uri.equals("/swagger-ui.html");
+    }
+
     private AuthTokens getAuthTokensFromRequest() {
         String authorization = rq.getHeader("Authorization");
         if (authorization != null && authorization.startsWith("Bearer ")) {
@@ -67,7 +78,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
         String requestURI = request.getRequestURI();
-        if (!requestURI.startsWith("/api/")) {
+        if (!requestURI.startsWith("/api/") || isSwaggerRequest(requestURI)) {
             filterChain.doFilter(request, response);
             return;
         }
