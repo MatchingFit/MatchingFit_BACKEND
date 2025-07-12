@@ -70,9 +70,10 @@ public class UserService {
         String name = userJoinRequestDto.getName();
 
         // 이메일 중복 검사
-        if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 가입한 email 입니다.");
-        }
+//        if (userRepository.existsByEmail(email)) {
+//            throw new IllegalArgumentException("이미 가입한 email 입니다.");
+//        }
+        validateEmailDuplicate(email);
 
         // ✅ 영문+숫자 조합 & 10자리 이상 검사
         if (!isValidPassword(password)) {
@@ -104,6 +105,13 @@ public class UserService {
                 .build();
 
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public void validateEmailDuplicate(String email) {
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("이미 가입한 email 입니다.");
+        }
     }
 
     private boolean isValidPassword(String password) {

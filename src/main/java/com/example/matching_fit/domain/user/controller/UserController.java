@@ -65,5 +65,14 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(null, "로그아웃 성공"));
     }
 
+    @GetMapping("/check-email")
+    public ResponseEntity<String> checkEmailDuplicate(@RequestParam String email) {
+        try {
+            userService.validateEmailDuplicate(email);
+            return ResponseEntity.ok("사용 가능한 이메일입니다.");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
+    }
 
 }
