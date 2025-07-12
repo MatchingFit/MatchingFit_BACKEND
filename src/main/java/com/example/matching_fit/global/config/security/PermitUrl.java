@@ -7,7 +7,8 @@ public class PermitUrl {
             "http://localhost:8080/oauth2/authorization/kakao"
     };
     public static final String[] GET_URLS = {
-            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/v1/users/check-email"
+            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/v1/users/check-email",
+
     };
 
     public static final String[] POST_URLS = {
