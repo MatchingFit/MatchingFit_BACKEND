@@ -67,7 +67,7 @@ services:
     networks:
       - MatchingFit_network
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRESUSER}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
