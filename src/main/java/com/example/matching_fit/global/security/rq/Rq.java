@@ -29,15 +29,16 @@ public class Rq {
     private String cookieDomain;
 
     public void setLogin(User user) {
-        User contextUser = userService.findById(user.getId()).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 userId 입니다."));
-
+        if (user.getId() == null) {
+            throw new IllegalArgumentException("User id가 null 입니다. 저장된 엔티티를 넘겨주세요.");
+        }
 
         UserDetails securityUser = new SecurityUser(
-                contextUser.getId(),
-                contextUser.getEmail(),
+                user.getId(),
+                user.getEmail(),
                 "",
-                contextUser.getName(),
-                contextUser.getAuthorities()
+                user.getName(),
+                user.getAuthorities()
         );
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(

@@ -38,7 +38,10 @@ spring:
         format_sql: true
         show_sql: true           # 콘솔에 SQL 출력 (운영에서는 false 추천)
     open-in-view: false          # JPA Lazy 로딩 시 메모리 누수 방지
-
+  data:
+    redis:
+      host: redis
+      port: 6379
   sql:
     init:
       mode: always               # schema.sql, data.sql 자동 실행 여부
@@ -58,7 +61,7 @@ spring:
 custom:
   dev:
     cookieDomain: localhost
-    frontUrl: "http://${custom.dev.cookieDomain}:3000"
+    frontUrl: "http://${custom.dev.cookieDomain}:5173"
     backUrl: "http://${custom.dev.cookieDomain}:${server.port}"
   prod:
     cookieDomain: ""

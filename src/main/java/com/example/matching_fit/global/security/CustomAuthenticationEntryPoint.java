@@ -17,12 +17,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         String uri = request.getRequestURI();
 
-        // ✅ CORS 헤더 강제 추가 -> cors 에러 오류 처리 방안
-        response.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-        response.setHeader("Access-Control-Allow-Headers", "*");
-
         // REST API 요청이라면 JSON 반환
         if (uri.startsWith("/api/")) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
