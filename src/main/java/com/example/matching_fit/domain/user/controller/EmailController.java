@@ -70,7 +70,7 @@ public class EmailController {
         if (result) {
             return ResponseEntity.ok(ApiResponse.success(null, "인증 성공"));
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.success(null, "인증 실패"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail("인증 실패"));
         }
     }
 }

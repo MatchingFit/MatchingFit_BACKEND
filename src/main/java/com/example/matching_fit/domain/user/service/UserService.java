@@ -110,7 +110,7 @@ public class UserService {
     @Transactional
     public void validateEmailDuplicate(String email) {
         if (userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 가입한 email 입니다.");
+            throw new IllegalArgumentException("이미 다른 사용자가 사용중인 email 입니다.");
         }
     }
 

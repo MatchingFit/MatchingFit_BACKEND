@@ -40,7 +40,7 @@ spring:
     open-in-view: false          # JPA Lazy 로딩 시 메모리 누수 방지
   data:
     redis:
-      host: redis
+      host: ${custom.dev.cookieDomain}
       port: 6379
   sql:
     init:
