@@ -1,9 +1,6 @@
 package com.example.matching_fit.domain.user.controller;
 
-import com.example.matching_fit.domain.user.dto.CheckEmailResponseDto;
-import com.example.matching_fit.domain.user.dto.LoginRequestDto;
-import com.example.matching_fit.domain.user.dto.LoginResponseDto;
-import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
+import com.example.matching_fit.domain.user.dto.*;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.service.UserService;
@@ -87,6 +84,27 @@ public class UserController {
                     e.getMessage()
             ));
         }
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserInfoDto>> getUserInfo() {
+        User user = rq.getActor();
+        if (user == null) {
+            return ResponseEntity
+                    .status(401) // Unauthorized
+                    .body(ApiResponse.fail("사용자 정보를 가져올 수 없습니다. 인증이 필요합니다."));
+        }
+
+        UserInfoDto userInfoDto = UserInfoDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .kakaoId(user.getKakaoId())
+                .loginType(user.getLoginType())
+                .createdAt(user.getCreatedAt())
+                .build();
+
+        return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));
     }
 
 }

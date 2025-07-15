@@ -82,38 +82,38 @@ services:
       - ./redis/data:/data
     command: ["redis-server", "--appendonly", "yes"]
 
-#  elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
-#    container_name: MatchingFit_Elasticsearch
-#    environment:
-#      - discovery.type=${NODE_TYPE}
-#      - ES_JAVA_OPTS=${ES_OPTS}
-#      - xpack.security.enabled=${SECURITY_CONFIG}
-#    volumes:
-#      - ./elasticsearch/data:/usr/share/elasticsearch/data
-#    ports:
-#      - "${ES_EXTERNAL_PORT}:${ES_INTERNAL_PORT}"
-#    networks:
-#      - MatchingFit_network
-#    healthcheck:
-#      test: ["CMD-SHELL", "curl -s http://localhost:9200 || exit 1"]
-#      interval: 15s
-#      timeout: 5s
-#      retries: 5
-#
-#  kibana:
-#    image: kibana:8.12.2
-#    container_name: MatchingFit_Kibana
-#    depends_on:
-#      - elasticsearch
-#    ports:
-#      - "${KIBANA_EXTERNAL_PORT}:${KIBANA_INTERNAL_PORT}"
-#    networks:
-#      - MatchingFit_network
-#    environment:
-#      ELASTICSEARCH_HOSTS: "http://${ES_HOST}:${ES_EXTERNAL_PORT}"
-#    env_file:
-#      - .env
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: MatchingFit_Elasticsearch
+    environment:
+      - discovery.type=${NODE_TYPE}
+      - ES_JAVA_OPTS=${ES_OPTS}
+      - xpack.security.enabled=${SECURITY_CONFIG}
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - "${ES_EXTERNAL_PORT}:${ES_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: kibana:8.12.2
+    container_name: MatchingFit_Kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "${KIBANA_EXTERNAL_PORT}:${KIBANA_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    environment:
+      ELASTICSEARCH_HOSTS: "http://${ES_HOST}:${ES_EXTERNAL_PORT}"
+    env_file:
+      - .env
 
 networks:
   MatchingFit_network:
