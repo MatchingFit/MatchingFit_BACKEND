@@ -1,6 +1,7 @@
 package com.example.matching_fit.domain.user.controller;
 
 import com.example.matching_fit.domain.user.dto.LoginRequestDto;
+import com.example.matching_fit.domain.user.dto.LoginResponseDto;
 import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
@@ -46,10 +47,12 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequestDto user) {
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto user) {
         try {
             String token = userService.login(user.getEmail(), user.getPassword());
-            return ResponseEntity.ok(ApiResponse.success(token, "login success"));
+            User loginUser = userService.findByEmail(user.getEmail()).orElseThrow();
+            LoginResponseDto loginResponseDto = new LoginResponseDto(token, loginUser.getName());
+            return ResponseEntity.ok(ApiResponse.success(loginResponseDto, "login success"));
         } catch (BadCredentialsException e) {
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
