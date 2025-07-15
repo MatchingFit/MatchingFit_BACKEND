@@ -1,5 +1,6 @@
 package com.example.matching_fit.domain.user.controller;
 
+import com.example.matching_fit.domain.user.dto.CheckEmailResponseDto;
 import com.example.matching_fit.domain.user.dto.LoginRequestDto;
 import com.example.matching_fit.domain.user.dto.LoginResponseDto;
 import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
@@ -69,12 +70,22 @@ public class UserController {
     }
 
     @GetMapping("/check-email")
-    public ResponseEntity<ApiResponse<?>> checkEmailDuplicate(@RequestParam String email) {
+    public ResponseEntity<CheckEmailResponseDto> checkEmailDuplicate(@RequestParam String email) {
         try {
             userService.validateEmailDuplicate(email);
-            return ResponseEntity.ok(ApiResponse.success(null,"사용 가능한 이메일입니다."));
+            // 중복 아님 → 사용 가능
+            return ResponseEntity.ok(new CheckEmailResponseDto(
+                    true,
+                    false,
+                    "사용 가능한 이메일입니다."
+            ));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail(e.getMessage()));
+            // 중복 → 이미 가입됨
+            return ResponseEntity.status(HttpStatus.OK).body(new CheckEmailResponseDto(
+                    true,
+                    true,
+                    e.getMessage()
+            ));
         }
     }
 
