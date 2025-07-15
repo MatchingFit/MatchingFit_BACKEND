@@ -38,9 +38,11 @@ out/
 .vscode/
 
 ### infra ###
-infra/db/
+infra/postgres/db/
 infra/elasticsearch/data
 infra/.env
+
+
 
 ##redis###
 infra/redis

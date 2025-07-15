@@ -14,23 +14,23 @@ services:
       postgres:
         condition: service_healthy
 
-#  matchingpit-analyzer:
-#    build:
-#      context: ./python
-#      dockerfile: dockerfile_python
-#    container_name: MatchingFit_Analyzer
-#    ports:
-#      - "8000:8000"
-#    networks:
-#      - MatchingFit_network
-#    env_file:
-#      - .env
-#    depends_on:
-#      - postgres
+  matchingpit-analyzer:
+    build:
+      context: ./python
+      dockerfile: dockerfile_python
+    container_name: MatchingFit_Analyzer
+    ports:
+      - "8000:8000"
+    networks:
+      - MatchingFit_network
+    env_file:
+      - .env
+    depends_on:
+      - postgres
 
   frontend:
     build:
-      context: ../../AI_resume_2_frontend
+      context: ../../MatchingFit_FRONTEND
       dockerfile: dockerfile_frontend
     container_name: MatchingFit_Frontend
     ports:
@@ -63,7 +63,7 @@ services:
     ports:
       - "${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}"
     volumes:
-      - ./postgres/db:/var/lib/postgresql/db
+      - ./postgres/db:/var/lib/postgresql/data
     networks:
       - MatchingFit_network
     healthcheck:
@@ -80,7 +80,7 @@ services:
       - MatchingFit_network
     volumes:
       - ./redis/data:/data
-    command: [ "redis-server", "--appendonly", "yes" ]
+    command: ["redis-server", "--appendonly", "yes"]
 
 #  elasticsearch:
 #    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2

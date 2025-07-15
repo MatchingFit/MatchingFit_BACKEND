@@ -31,20 +31,20 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update            # 개발 시에는 update, 운영 시에는 none or validate
+      ddl-auto: update # 개발 시에는 update, 운영 시에는 none or validate
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        show_sql: true           # 콘솔에 SQL 출력 (운영에서는 false 추천)
-    open-in-view: false          # JPA Lazy 로딩 시 메모리 누수 방지
-#  data:
-#    redis:
-#      host: ${custom.dev.cookieDomain}
-#      port: 6379
+        show_sql: true # 콘솔에 SQL 출력 (운영에서는 false 추천)
+    open-in-view: false # JPA Lazy 로딩 시 메모리 누수 방지
+  data:
+    redis:
+      host: redis
+      port: 6379
   sql:
     init:
-      mode: always               # schema.sql, data.sql 자동 실행 여부
+      mode: always # schema.sql, data.sql 자동 실행 여부
 
   mail:
     host: smtp.gmail.com
@@ -76,7 +76,6 @@ custom:
     secretKey: ${JWT_SECRET_KEY}
   accessToken:
     expirationSeconds: 3600
-
 
 cookie:
   domain: "localhost"
