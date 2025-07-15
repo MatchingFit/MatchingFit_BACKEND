@@ -2,7 +2,6 @@ package com.example.matching_fit.global.security.oauth2;
 
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.service.UserService;
-import com.example.matching_fit.global.config.app.AppConfig;
 import com.example.matching_fit.global.security.rq.Rq;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -11,6 +10,9 @@ import lombok.SneakyThrows;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Component
 @RequiredArgsConstructor
@@ -27,9 +29,8 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SavedRequestAwareA
         // 토큰 발급
         rq.makeAuthCookie(actor);
 
-        String redirectUrl = request.getParameter("state");
-
-        // 프론트 주소로 redirect
+        String encodedRedirectUrl = request.getParameter("state");
+        String redirectUrl = new String(Base64.getDecoder().decode(encodedRedirectUrl), StandardCharsets.UTF_8);
         response.sendRedirect(redirectUrl);
     }
 

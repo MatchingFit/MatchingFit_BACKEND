@@ -7,6 +7,8 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,20 +33,22 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
     }
 
     private OAuth2AuthorizationRequest customizeAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request) {
-        if (authorizationRequest == null || request == null) {
-            return null;
-        }
+        if (authorizationRequest == null || request == null) return null;
 
         String redirectUrl = request.getParameter("redirectUrl");
 
         Map<String, Object> additionalParameters = new HashMap<>(authorizationRequest.getAdditionalParameters());
+
         if (redirectUrl != null && !redirectUrl.isEmpty()) {
-            additionalParameters.put("state", redirectUrl);
+            String encoded = Base64.getEncoder().encodeToString(redirectUrl.getBytes(StandardCharsets.UTF_8));
+            additionalParameters.put("redirectUrl", encoded);
+
+            return OAuth2AuthorizationRequest.from(authorizationRequest)
+                    .additionalParameters(additionalParameters)
+                    .state(encoded)  // state에 인코딩된 redirectUrl 넣기
+                    .build();
         }
 
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(additionalParameters)
-                .state(redirectUrl)
-                .build();
+        return authorizationRequest;
     }
 }

@@ -4,7 +4,8 @@ public class PermitUrl {
 
     //모든 메서드 요청 허용
     public static final String[] ALL_URLS = {
-            "http://localhost:8080/oauth2/authorization/kakao"
+            "http://localhost:8080/oauth2/authorization/kakao",
+            "http://localhost/api/oauth2/authorization/kakao",
     };
     public static final String[] GET_URLS = {
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/v1/users/check-email",
