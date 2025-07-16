@@ -27,22 +27,22 @@ public class ScoreController {
         {
             throw new IllegalArgumentException("userId/resumeId 값이 일치하지않습니다.");
         }
-        return scoreService.sumScore(resumeEmbeddingRequestDTO);
+        return scoreService.sumScore(userId, resumeId,resumeEmbeddingRequestDTO);
     }
 
     //이력서 조회(전체)
-    @GetMapping("/history")
-    public List<CompetencyScoreDTO> getHistoryScore(){
-        return scoreService.findHistoryScore();
-    }
-
-    //이력서 조회 (상세 조회)
-    @GetMapping("/history/{userId}/{resumeId}")
-    public List<CompetencyScoreDTO> getHistoryDetailScore(
-            @PathVariable Long userId,
-            @PathVariable Long resumeId
-    ) {
-        return scoreService.findHistoryDetailScore(userId, resumeId);
-    }
+//    @GetMapping("/history")
+//    public List<CompetencyScoreDTO> getHistoryScore(){
+//        return scoreService.findHistoryScore();
+//    }
+//
+//    //이력서 조회 (상세 조회)
+//    @GetMapping("/history/{userId}/{resumeId}")
+//    public List<CompetencyScoreDTO> getHistoryDetailScore(
+//            @PathVariable Long userId,
+//            @PathVariable Long resumeId
+//    ) {
+//        return scoreService.findHistoryDetailScore(userId, resumeId);
+//    }
 
 }

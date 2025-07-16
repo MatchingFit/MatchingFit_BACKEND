@@ -16,25 +16,16 @@ public class Keyword {
 
     private String keyword; //키워드명
 
-    @Lob
-    private String embedding;
-
-    private Double score; //키워드별 점수
-
+    private Double weightScore; //가중치
 
     //다대1 관계 여러개의 키워드들이 하나의 역량에 속함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competency_id")
-    @JsonBackReference //무한루프 방지
     private Competency competency;
 
-    //점수를 바꾸는 메소드 추가
-    public void updateScore(Double score){
-        this.score = score;
-    }
-
-    //embedding 필드만 업데이트하는 메소드 추가
-    public void updateEmbedding(String embedding){
-        this.embedding = embedding;
+    //키워드별로 중요도 나누기
+    // (예시 키워드별 점수가 1점씩이엿다면 이코드를 사용하면 2 0.5 0.5로 변환가능)
+    public void updateWeightScore(Double weightScore){
+        this.weightScore = weightScore;
     }
 }
