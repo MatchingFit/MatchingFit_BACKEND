@@ -45,7 +45,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto loginRequest) {
+    public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequestDto loginRequest) {
         User user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 
         // 1) accessToken 발급 (JWT)
@@ -68,7 +68,7 @@ public class UserController {
         // 4) 응답에 accessToken은 바디로, refreshToken은 쿠키로 담아 반환
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success(new LoginResponseDto(accessToken, user.getName()), "로그인 성공!"));
+                .body(ApiResponse.success(accessToken, "로그인 성공!"));
     }
 
     @DeleteMapping("/logout")
