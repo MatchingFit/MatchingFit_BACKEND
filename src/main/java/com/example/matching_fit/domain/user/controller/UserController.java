@@ -3,16 +3,21 @@ package com.example.matching_fit.domain.user.controller;
 import com.example.matching_fit.domain.user.dto.*;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
+import com.example.matching_fit.domain.user.service.AuthTokenService;
 import com.example.matching_fit.domain.user.service.UserService;
 import com.example.matching_fit.global.rp.ApiResponse;
 import com.example.matching_fit.global.security.rq.Rq;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -22,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final AuthTokenService authTokenService;
     private final Rq rq;
 
     @PostMapping("/join")
@@ -40,17 +46,30 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto user) {
-        try {
-            String token = userService.login(user.getEmail(), user.getPassword());
-            User loginUser = userService.findByEmail(user.getEmail()).orElseThrow();
-            LoginResponseDto loginResponseDto = new LoginResponseDto(token, loginUser.getName());
-            return ResponseEntity.ok(ApiResponse.success(loginResponseDto, "login success"));
-        } catch (BadCredentialsException e) {
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED)
-                    .body(ApiResponse.fail(e.getMessage()));
-        }
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequest) {
+        User user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+
+        // 1) accessToken 발급 (JWT)
+        String accessToken = authTokenService.genAccessToken(user);
+
+        // 2) refreshToken 생성 (랜덤 UUID) 및 DB 저장
+        String refreshToken = UUID.randomUUID().toString();
+        user.setRefreshToken(refreshToken);
+        userService.updateRefreshToken(user);
+
+        // 3) refreshToken을 HttpOnly 쿠키로 설정
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+                .httpOnly(true)
+                .secure(true) // HTTPS 환경일 때 true로 설정하세요
+                .path("/")    // 필요한 경로 설정
+                .maxAge(60 * 60 * 24 * 7) // 7일 유효기간 (초 단위)
+                .sameSite("Strict") // 혹은 "Lax"
+                .build();
+
+        // 4) 응답에 accessToken은 바디로, refreshToken은 쿠키로 담아 반환
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(new LoginResponseDto(user.getName(),accessToken));
     }
 
     @DeleteMapping("/logout")

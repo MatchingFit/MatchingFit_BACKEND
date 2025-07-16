@@ -169,6 +169,25 @@ public class UserService {
         return kakaoJoin(nickname, username, LoginType.KAKAO, kakaoId);
     }
 
+    @Transactional
+    public void updateRefreshToken(User user) {
+        // 이미 user 객체에 refreshToken이 세팅된 상태이므로
+        // DB에 반영하기 위해 save 또는 update 호출
+        userRepository.save(user);
+    }
+
+    // 이메일과 비밀번호로 사용자 인증 (예시)
+    public User authenticate(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("존재하지 않는 사용자입니다."));
+
+        // 비밀번호 검증 (예: BCrypt)
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new RuntimeException("비밀번호가 일치하지 않습니다.");
+        }
+        return user;
+    }
+
 
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
