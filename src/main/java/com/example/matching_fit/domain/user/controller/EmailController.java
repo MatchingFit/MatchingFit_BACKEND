@@ -6,7 +6,6 @@ import com.example.matching_fit.domain.user.service.EmailService;
 import com.example.matching_fit.domain.user.service.UserService;
 import com.example.matching_fit.global.rp.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -51,18 +50,6 @@ public class EmailController {
         emailService.sendVerificationEmail(email);
         return ResponseEntity.ok(ApiResponse.success(null, "이메일 전송 성공"));
     }
-    //    비밀번호 찾기용 인증 메서드
-//    @PostMapping("/password/send")
-//    public ResponseEntity<ApiResponse<String>> sendCodeByFindPassword(@RequestBody UserEmailDto userEmailDto){
-//        String email = userEmailDto.getEmail();
-//        if(!userService.emailExists(email)) {
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(ApiResponse.fail("존재하지 않는 email 입니다."));
-//        }
-//        emailService.sendVerificationEmail(email);
-//        return ResponseEntity.ok(ApiResponse.success(null, "이메일 전송 성공"));
-//    }
 
     @PostMapping("/verify")
     public ResponseEntity<?> verifyCode(@RequestBody EmailVerificationDto emailVerificationDto) {

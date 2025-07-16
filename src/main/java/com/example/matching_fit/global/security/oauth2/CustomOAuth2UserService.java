@@ -10,7 +10,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -31,7 +30,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes = oAuth2User.getAttributes();
         Map<String, String> attributesProperties = (Map<String, String>) attributes.get("properties");
         String nickname = attributesProperties.get("nickname");
-//        String profileImgUrl = attributesProperties.get("profile_image");
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         String email = (String) kakaoAccount.get("email");
         String kakaoId = providerTypeCode + "__" + oauthId; //성공하면 이메일(email)로 변경 예정

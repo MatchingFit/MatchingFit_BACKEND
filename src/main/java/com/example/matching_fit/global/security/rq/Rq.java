@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -58,7 +57,6 @@ public class Rq {
                 .map(Authentication::getPrincipal)
                 .filter(principal -> principal instanceof SecurityUser)
                 .map(principal -> (SecurityUser) principal)
-//                .map(securityUser -> new User(securityUser.getId(), securityUser.getUsername(), securityUser.getNickname() ))
                 .map(securityUser -> userService.findById(securityUser.getId()).orElse(null)) // 수정된 부분
                 .orElse(null);
     }

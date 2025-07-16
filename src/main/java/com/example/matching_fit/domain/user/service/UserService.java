@@ -32,15 +32,6 @@ public class UserService {
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
-
-    public Optional<User> findByName(String nickname) {
-        return userRepository.findByName(nickname);
-    }
-
-
-    public String genAuthToken(User member) {
-        return member.getRefreshToken() + " " + genAccessToken(member);
-    }
     public Optional<User> findById(long authorId) {
         return userRepository.findById(authorId);
     }
@@ -69,21 +60,12 @@ public class UserService {
         String passwordConfirm = userJoinRequestDto.getPasswordConfirm(); // 추가
         String name = userJoinRequestDto.getName();
 
-        // 이메일 중복 검사
-//        if (userRepository.existsByEmail(email)) {
-//            throw new IllegalArgumentException("이미 가입한 email 입니다.");
-//        }
         validateEmailDuplicate(email);
 
         // ✅ 영문+숫자 조합 & 10자리 이상 검사
         if (!isValidPassword(password)) {
             throw new IllegalArgumentException("비밀번호는 영문과 숫자를 조합해 10자리 이상이어야 합니다.");
         }
-
-        // 닉네임 중복 검사
-//        if (userRepository.existsByName(name)) {
-//            throw new IllegalArgumentException("이미 사용중인 nickname 입니다.");
-//        }
 
 
         // 비밀번호 & 비밀번호 확인 일치 여부 검사

@@ -23,9 +23,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"error\": \"Unauthorized\", \"message\": \"로그인이 필요합니다.\"}");
         }
-        // 그 외는 로그인 페이지로 리다이렉트
-//        else {
-//            response.sendRedirect("/login");
-//        }
+
     }
 }

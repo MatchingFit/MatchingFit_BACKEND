@@ -6,18 +6,13 @@ import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.service.UserService;
 import com.example.matching_fit.global.rp.ApiResponse;
 import com.example.matching_fit.global.security.rq.Rq;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/users")
