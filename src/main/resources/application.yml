@@ -75,7 +75,7 @@ custom:
   jwt:
     secretKey: ${JWT_SECRET_KEY}
   accessToken:
-    expirationSeconds: 3600
+    expirationSeconds: 60*60*24
 
 cookie:
   domain: "localhost"

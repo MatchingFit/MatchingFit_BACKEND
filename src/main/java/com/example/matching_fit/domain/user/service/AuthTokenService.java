@@ -20,7 +20,6 @@ public class AuthTokenService {
     public String genAccessToken(User user) {
         long id = user.getId();
         String email = user.getEmail();
-
         String name = user.getName();
         return JwtUt.jwt.toString(
                 jwtSecretKey,
