@@ -1,7 +1,5 @@
 package com.example.matching_fit.domain.user.controller;
 
-import com.example.matching_fit.domain.user.dto.AccessTokenResponse;
-import com.example.matching_fit.domain.user.dto.RefreshTokenRequest;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.service.AuthTokenService;
 import com.example.matching_fit.domain.user.service.UserService;
