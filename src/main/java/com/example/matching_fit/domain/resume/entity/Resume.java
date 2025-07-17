@@ -1,4 +1,4 @@
-package com.example.matching_fit.resume.entity;
+package com.example.matching_fit.domain.resume.entity;
 
 import com.example.matching_fit.user.entity.User;
 import org.hibernate.annotations.JdbcTypeCode;

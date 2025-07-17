@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import uuid, logging, requests
+import uuid, logging, httpx
 
 from app.extractor import extract_text
 from app.embedding import embed_resume
@@ -46,21 +46,22 @@ async def process_resume(
             job_field=job_field
         )
 
-        try:
-            spring_response = requests.post(SPRING_API_URL, json={
-                "resume_id": resume_id,
-                "embedding": embedding,
-                "job_field": job_field
-            }, timeout=5)
+        async with httpx.AsyncClient() as client:
+            spring_response = await client.post(
+                SPRING_API_URL,
+                json={
+                    "resume_id": resume_id,
+                    "embedding": embedding,
+                    "job_field": job_field
+                },
+                timeout=5
+            )
 
             if spring_response.status_code == 200:
                 score_result = spring_response.json().get("score_result")
             else:
                 logger.warning(f"Spring 분석 실패: {spring_response.status_code}")
                 score_result = None
-        except Exception as e:
-            logger.error(f"Spring 통신 에러: {e}")
-            score_result = None
 
         return {
             "resume_id": resume_id,
