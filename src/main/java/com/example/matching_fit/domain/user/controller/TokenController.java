@@ -37,8 +37,6 @@ public class TokenController {
             }
         }
 
-        System.out.println("refreshToken 쿠키: " + refreshToken);
-
         if (refreshToken == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.fail("리프레시 토큰이 없습니다."));
@@ -46,7 +44,6 @@ public class TokenController {
 
         // DB에서 유저 조회
         Optional<User> optionalUser = userService.findByRefreshToken(refreshToken);
-
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.fail("유효하지 않은 Refresh Token입니다."));
@@ -54,9 +51,17 @@ public class TokenController {
 
         User user = optionalUser.get();
 
-        // 새 Access Token 발급
-        String newAccessToken = authTokenService.genAccessToken(user);
+        // 🔍 Redis에서 기존 accessToken 있는지 확인
+        Optional<String> redisAccessToken = authTokenService.getAccessTokenFromRedis(user.getId()); // 또는 user.getEmail()
 
-        return ResponseEntity.ok(ApiResponse.success(newAccessToken, "재발급 성공!"));
+        if (redisAccessToken.isPresent()) {
+            return ResponseEntity.ok(ApiResponse.success(redisAccessToken.get(), "기존 Access Token 반환"));
+        }
+
+        // 🆕 accessToken 새로 발급 + Redis 저장
+        String newAccessToken = authTokenService.genAccessToken(user); // 내부에서 Redis 저장도 함께 한다면 좋음
+
+        return ResponseEntity.ok(ApiResponse.success(newAccessToken, "Access Token 재발급 성공"));
     }
+
 }
