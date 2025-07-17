@@ -3,7 +3,7 @@ services:
     build:
       context: ../
       dockerfile: Dockerfile
-    container_name: MatchingFit_Backend
+    container_name: MatchingFit-Backend
     ports:
       - "${BACKEND_EXTERNAL_PORT}:${BACKEND_INTERNAL_PORT}"
     networks:
@@ -18,7 +18,7 @@ services:
     build:
       context: ./python
       dockerfile: dockerfile_python
-    container_name: MatchingFit_Analyzer
+    container_name: MatchingFit-Analyzer
     ports:
       - "${ANALYZER_EXTERNAL_PORT}:${ANALYZER_INTERNAL_PORT}"
     networks:
@@ -32,7 +32,7 @@ services:
     build:
       context: ../../AI_resume_2_frontend
       dockerfile: dockerfile_frontend
-    container_name: MatchingFit_Frontend
+    container_name: MatchingFit-Frontend
     ports:
       - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
     networks:
@@ -40,7 +40,7 @@ services:
 
   nginx:
     image: nginx:alpine
-    container_name: MatchingFit_Nginx
+    container_name: MatchingFit-Nginx
     ports:
       - "${NGINX_HTTP_PORT}:80"
       - "${NGINX_HTTPS_PORT}:443"
@@ -56,7 +56,7 @@ services:
     build:
       context: ./postgres
       dockerfile: dockerfile_postgres
-    container_name: MatchingFit_Postgres
+    container_name: MatchingFit-Postgres
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -77,7 +77,7 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
-    container_name: MatchingFit_Elasticsearch
+    container_name: MatchingFit-Elasticsearch
     environment:
       - discovery.type=${NODE_TYPE}
       - ES_JAVA_OPTS=${ES_OPTS}
@@ -96,7 +96,7 @@ services:
 
   kibana:
     image: kibana:8.12.2
-    container_name: MatchingFit_Kibana
+    container_name: MatchingFit-Kibana
     depends_on:
       - elasticsearch
     ports:
