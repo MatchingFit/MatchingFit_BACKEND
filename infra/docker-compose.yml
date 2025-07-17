@@ -30,7 +30,7 @@ services:
 
   frontend:
     build:
-      context: ../../AI_resume_2_frontend
+      context: ../../MatchingFit_FRONTEND
       dockerfile: dockerfile_frontend
     container_name: MatchingFit-Frontend
     ports:
@@ -74,6 +74,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      
+  redis:
+    image: redis:7
+    container_name: MatchingFit_Redis
+    ports:
+      - "6379:6379"
+    networks:
+      - MatchingFit_network
+    volumes:
+      - ./redis/data:/data
+    command: ["redis-server", "--appendonly", "yes"]
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
