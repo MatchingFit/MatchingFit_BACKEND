@@ -6,15 +6,21 @@ import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.enums.Role;
 import com.example.matching_fit.domain.user.repository.UserRepository;
 import com.example.matching_fit.global.security.rq.Rq;
+import com.example.matching_fit.global.security.ut.JwtUt;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -25,6 +31,9 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthTokenService authTokenService;
     private final Rq rq;
+
+    @Value("${custom.jwt.secretKey}")
+    private String secretKey;
     public Optional<User> findByRefreshToken(String refreshToken) {
         return userRepository.findByRefreshToken(refreshToken);
     }
@@ -103,6 +112,7 @@ public class UserService {
                 + "|^(?=.*[A-Za-z].*)(?=.*[!@#$%^&*()\\-_=+\\[\\]{};:'\",.<>/?`~].*).{10,}$";
         return password.matches(passwordPattern);
     }
+
 
     @Transactional
     public String login(String email, String password) {
@@ -192,6 +202,7 @@ public class UserService {
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
+
 
 
 

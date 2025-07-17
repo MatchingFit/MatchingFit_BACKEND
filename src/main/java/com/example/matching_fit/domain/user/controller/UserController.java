@@ -4,12 +4,15 @@ import com.example.matching_fit.domain.user.dto.*;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.service.AuthTokenService;
+import com.example.matching_fit.domain.user.service.RedisService;
 import com.example.matching_fit.domain.user.service.UserService;
 import com.example.matching_fit.global.rp.ApiResponse;
 import com.example.matching_fit.global.security.rq.Rq;
+import io.jsonwebtoken.impl.JwtTokenizer;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -27,6 +30,7 @@ public class UserController {
 
     private final UserService userService;
     private final AuthTokenService authTokenService;
+    private final RedisService redisService;
     private final Rq rq;
 
     @PostMapping("/join")
@@ -46,31 +50,36 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequestDto loginRequest) {
+
+        // 1. 사용자 인증
         User user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 
-        // 1) accessToken 발급 (JWT)
+        // 2. accessToken 발급
         String accessToken = authTokenService.genAccessToken(user);
 
-        // 2) refreshToken 생성 (랜덤 UUID) 및 DB 저장
+        // 3. accessToken Redis 저장 (key: token, value: userId, TTL: 만료시간)
+        long expiration = 86400; // 만료 시간(ms 단위)
+        redisService.saveAccessToken(accessToken, user.getId(), expiration);
+
+        // 4. refreshToken 생성 및 DB 저장
         String refreshToken = UUID.randomUUID().toString();
         user.setRefreshToken(refreshToken);
         userService.updateRefreshToken(user);
 
-        // 3) refreshToken을 HttpOnly 쿠키로 설정
+        // 5. refreshToken을 HttpOnly 쿠키로 설정
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
-                .secure(true) // HTTPS 환경일 때 true로 설정하세요
-                .path("/")    // 필요한 경로 설정
-                .maxAge(60 * 60 * 24 * 7) // 7일 유효기간 (초 단위)
-                .sameSite("Strict") // 혹은 "Lax"
+                .secure(true)
+                .path("/")
+                .maxAge(60 * 60 * 24 * 7) // 7일
+                .sameSite("Strict")
                 .build();
 
-        // 4) 응답에 accessToken은 바디로, refreshToken은 쿠키로 담아 반환
+        // 6. 응답 반환 (accessToken은 바디로, refreshToken은 쿠키로)
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(ApiResponse.success(accessToken, "로그인 성공!"));
     }
-
     @DeleteMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logoutUser() {
         rq.deleteCookie("accessToken");

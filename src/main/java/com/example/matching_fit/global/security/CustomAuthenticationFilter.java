@@ -1,6 +1,7 @@
 package com.example.matching_fit.global.security;
 
 import com.example.matching_fit.domain.user.entity.User;
+import com.example.matching_fit.domain.user.service.RedisService;
 import com.example.matching_fit.domain.user.service.UserService;
 import com.example.matching_fit.global.security.rq.Rq;
 import jakarta.servlet.FilterChain;
@@ -21,6 +22,7 @@ import java.util.Optional;
 public class CustomAuthenticationFilter extends OncePerRequestFilter {
     private final UserService userService;
     private final Rq rq;
+    private final RedisService redisService;
 
     record AuthTokens(String refreshToken, String accessToken) {
     }
@@ -76,7 +78,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
 
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String requestURI = request.getRequestURI();
         if (!requestURI.startsWith("/api/") || isSwaggerRequest(requestURI)) {
             filterChain.doFilter(request, response);
@@ -84,7 +86,6 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         }
 
         AuthTokens authTokens = getAuthTokensFromRequest();
-        log.info("authTokens test {}", authTokens);
         if (authTokens == null) {
             filterChain.doFilter(request, response);
             return;
@@ -93,13 +94,22 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         String refreshToken = authTokens.refreshToken;
         String accessToken = authTokens.accessToken;
 
-        User user = userService.getUserFromAccessToken(accessToken);
-        if (user == null)
+        User user = null;
+
+        // ✅ 1) accessToken 유효성 체크 + Redis 유효성 체크
+        if (redisService.isAccessTokenValid(accessToken)) {
+            user = userService.getUserFromAccessToken(accessToken);
+        }
+
+        // ✅ 2) accessToken이 없거나 무효 → refreshToken 재발급 시도
+        if (user == null && refreshToken != null) {
             user = refreshAccessTokenByRefreshToken(refreshToken);
+        }
 
-        if (user != null)
+        // ✅ 3) 로그인 상태 설정
+        if (user != null) {
             rq.setLogin(user);
-
+        }
 
         filterChain.doFilter(request, response);
     }
