@@ -2,6 +2,7 @@ package com.example.matching_fit.domain.resume.entity;
 
 
 import com.example.matching_fit.domain.user.entity.User;
+import lombok.Getter;
 import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,6 +11,7 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @Table(name = "resumes")
 public class Resume {
 
@@ -29,7 +31,7 @@ public class Resume {
 
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
-    private Double[] embedding;
+    private double[] embedding;
 
     @Column(name = "job_field", length = 50)
     private String jobField;

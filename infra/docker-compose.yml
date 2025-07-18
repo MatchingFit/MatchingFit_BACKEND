@@ -14,19 +14,19 @@ services:
       postgres:
         condition: service_healthy
 
-  matchingpit-analyzer:
-    build:
-      context: ./python
-      dockerfile: dockerfile_python
-    container_name: MatchingFit-Analyzer
-    ports:
-      - "${ANALYZER_EXTERNAL_PORT}:${ANALYZER_INTERNAL_PORT}"
-    networks:
-      - MatchingFit_network
-    env_file:
-      - .env
-    depends_on:
-      - postgres
+#  matchingpit-analyzer:
+#    build:
+#      context: ./python
+#      dockerfile: dockerfile_python
+#    container_name: MatchingFit-Analyzer
+#    ports:
+#      - "${ANALYZER_EXTERNAL_PORT}:${ANALYZER_INTERNAL_PORT}"
+#    networks:
+#      - MatchingFit_network
+#    env_file:
+#      - .env
+#    depends_on:
+#      - postgres
 
   frontend:
     build:

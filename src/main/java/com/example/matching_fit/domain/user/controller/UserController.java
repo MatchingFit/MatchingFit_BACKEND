@@ -50,35 +50,48 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequestDto loginRequest) {
+        try {
+            // 1. 사용자 인증
+            User user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
 
-        // 1. 사용자 인증
-        User user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+            // 2. accessToken 발급
+            String accessToken = authTokenService.genAccessToken(user);
 
-        // 2. accessToken 발급
-        String accessToken = authTokenService.genAccessToken(user);
+            // 3. accessToken Redis 저장
+            long expiration = 86400;
+            redisService.saveAccessToken(accessToken, user.getId(), expiration);
 
-        // 3. accessToken Redis 저장 (key: token, value: userId, TTL: 만료시간)
-        long expiration = 86400; // 만료 시간(ms 단위)
-        redisService.saveAccessToken(accessToken, user.getId(), expiration);
+            // 4. refreshToken 생성 및 DB 저장
+            String refreshToken = UUID.randomUUID().toString();
+            user.setRefreshToken(refreshToken);
+            userService.updateRefreshToken(user);
 
-        // 4. refreshToken 생성 및 DB 저장
-        String refreshToken = UUID.randomUUID().toString();
-        user.setRefreshToken(refreshToken);
-        userService.updateRefreshToken(user);
+            // 5. HttpOnly 쿠키 설정
+            ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/")
+                    .maxAge(60 * 60 * 24 * 7)
+                    .sameSite("Strict")
+                    .build();
 
-        // 5. refreshToken을 HttpOnly 쿠키로 설정
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(60 * 60 * 24 * 7) // 7일
-                .sameSite("Strict")
-                .build();
+            // 6. 성공 응답
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                    .body(ApiResponse.success(accessToken, "로그인 성공!"));
 
-        // 6. 응답 반환 (accessToken은 바디로, refreshToken은 쿠키로)
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(ApiResponse.success(accessToken, "로그인 성공!"));
+        } catch (RuntimeException ex) {
+            String msg = ex.getMessage();
+
+            if ("존재하지 않는 사용자입니다.".equals(msg) || "비밀번호가 일치하지 않습니다.".equals(msg)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.fail(msg));
+            }
+
+            // 그 외 예외는 500
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.fail(msg));
+        }
     }
     @DeleteMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logoutUser() {
