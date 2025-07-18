@@ -1,6 +1,7 @@
 package com.example.matching_fit.domain.resume.entity;
 
-import com.example.matching_fit.user.entity.User;
+
+import com.example.matching_fit.domain.user.entity.User;
 import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UpdateTimestamp;
