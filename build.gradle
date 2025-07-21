@@ -50,6 +50,7 @@ dependencies {
 	implementation 'org.apache.pdfbox:pdfbox:2.0.28'  // PDF 텍스트 추출
 	implementation 'com.squareup.okhttp3:okhttp:4.10.0'  // OpenAI API 호출용(OkHttp)
 
+
 }
 
 tasks.named('test') {

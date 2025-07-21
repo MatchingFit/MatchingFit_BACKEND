@@ -54,33 +54,5 @@ public class OpenAiService {
 
     private final OkHttpClient client = new OkHttpClient();
 
-    public String analyzeResume(String text) throws IOException {
-        String prompt = "아래 이력서 내용을 분석해서 주요 기술, 경력, 학력, 강점을 요약해줘:\n\n" + text;
 
-        MediaType mediaType = MediaType.parseMediaType("application/json");
-        String json = "{"
-                + "\"model\": \"text-davinci-003\","
-                + "\"prompt\": " + "\"" + prompt.replace("\"", "\\\"") + "\","
-                + "\"max_tokens\": 500,"
-                + "\"temperature\": 0.7"
-                + "}";
-
-        RequestBody body = RequestBody.create(json, okhttp3.MediaType.get("application/json"));
-        Request request = new Request.Builder()
-                .url("https://api.openai.com/v1/completions")
-                .post(body)
-                .addHeader("Authorization", "Bearer " + apiKey)
-                .addHeader("Content-Type", "application/json")
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("OpenAI API error: " + response);
-            }
-            String responseBody = response.body().string();
-            // JSON에서 "choices[0].text" 부분 파싱 필요 (간단하게 JSON 파싱 라이브러리 사용 권장)
-            // 여기서는 임시로 전체 응답 리턴
-            return responseBody;
-        }
-    }
 }
