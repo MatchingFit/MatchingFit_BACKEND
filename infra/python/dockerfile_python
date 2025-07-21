@@ -22,5 +22,16 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 6. 앱 코드 복사
 COPY . .
 
+# 환경변수 복사
+ARG HUGGING_FACE_TOKEN
+ENV HUGGING_FACE_TOKEN=${HUGGING_FACE_TOKEN}
+
+RUN echo "TOKEN: ${HUGGING_FACE_TOKEN}"
+
+# Hugging Face 인증
+RUN python -c "from huggingface_hub import login; login('${HUGGING_FACE_TOKEN}')"
+
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('intfloat/multilingual-e5-base').save('/app/models/e5-base')"
+
 # 7. FastAPI 실행
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
