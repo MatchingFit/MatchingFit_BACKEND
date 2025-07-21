@@ -18,6 +18,11 @@ public class Keyword {
 
     private Double weightScore; //가중치
 
+    //카테고리 필드 추가(기술전문성에서 사용)
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    private Category category;
+
     //다대1 관계 여러개의 키워드들이 하나의 역량에 속함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competency_id")
