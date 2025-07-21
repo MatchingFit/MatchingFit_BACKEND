@@ -1,0 +1,3 @@
+FROM ankane/pgvector:latest
+
+COPY init/init-pgvector.sql /docker-entrypoint-initdb.d/
