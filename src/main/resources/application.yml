@@ -24,3 +24,9 @@ spring:
   sql:
     init:
       mode: always               # schema.sql, data.sql 자동 실행 여부
+
+  data:
+    elasticsearch:
+      uris: http://${ES_LOCAL_HOST}:${ES_LOCAL_PORT}              # ES 서버 주소(여러 개라면 ,로 구분)
+      #username: your_username                  # 계정 필요 없다면 주석
+      #password: your_password                  # 계정 필요 없다면 주석

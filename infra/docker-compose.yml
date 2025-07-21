@@ -30,7 +30,7 @@ services:
 
   frontend:
     build:
-      context: ../../AI_resume_2_frontend
+      context: ../../MatchingFit_FRONTEND
       dockerfile: dockerfile_frontend
     container_name: MatchingFit_Frontend
     ports:

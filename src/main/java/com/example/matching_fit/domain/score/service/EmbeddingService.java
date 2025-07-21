@@ -23,6 +23,7 @@ public class EmbeddingService {
         }
     }
     //⭐️ 코사인 유사도 계산 함수
+    // 이건삭제해도 될꺼같음 사유는 엘라스틱서치가 해주니깐
     public double cosineSimilarity(List<Double> vec1, List<Double> vec2) {
         double dot = 0.0, normA = 0.0, normB = 0.0;
         for (int i = 0; i < vec1.size(); i++) {

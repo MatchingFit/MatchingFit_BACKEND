@@ -9,6 +9,7 @@ import java.util.List;
 public class ResumeEmbeddingRequestDTO {
     private Long userId;
     private Long resumeId;
-    //이력서 임베딩 벡터를 저장
-    private List<Double> resumeEmbedding;
+//    //이력서 임베딩 벡터를 저장
+//    private List<Double> resumeEmbedding;
+    // 삭제한 이유  : DB에 넣어두니깐 db에서 꺼내쓰면된다
 }
