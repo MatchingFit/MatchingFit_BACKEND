@@ -1,8 +1,0 @@
-package com.example.matching_fit.domain.score.repository;
-
-import com.example.matching_fit.domain.score.entity.ResumeEmbedding;
-import org.springframework.data.jpa.repository.JpaRepository;
-
-public interface ResumeEmbeddingRepository extends JpaRepository<ResumeEmbedding, Long> {
-
-}

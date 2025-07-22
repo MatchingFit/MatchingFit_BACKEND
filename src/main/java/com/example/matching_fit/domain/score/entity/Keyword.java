@@ -3,12 +3,18 @@ package com.example.matching_fit.domain.score.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(name = "keyword")
 public class Keyword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,11 +32,15 @@ public class Keyword {
     //다대1 관계 여러개의 키워드들이 하나의 역량에 속함
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competency_id")
-    private Competency competency;
+    private Competency competency; //소속역량
 
-    //키워드별로 중요도 나누기
-    // (예시 키워드별 점수가 1점씩이엿다면 이코드를 사용하면 2 0.5 0.5로 변환가능)
-    public void updateWeightScore(Double weightScore){
-        this.weightScore = weightScore;
-    }
+    //추가
+    @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
+    @Column(columnDefinition = "vector(768)")
+    private Double[] embedding;            // 임베딩 벡터
+
+    //추가 한개의 키워드가 여러개의 점수를 가질수있음
+    @OneToMany(mappedBy = "keyword", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<KeywordScore> keywordScores = new ArrayList<>();
+
 }

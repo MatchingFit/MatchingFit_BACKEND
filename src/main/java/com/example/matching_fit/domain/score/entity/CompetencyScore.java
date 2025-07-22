@@ -1,9 +1,6 @@
 package com.example.matching_fit.domain.score.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +13,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "competencyscore")
 public class CompetencyScore {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,7 +21,10 @@ public class CompetencyScore {
 
     private Long userId;
     private Long resumeId;
-    private Long competencyId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "competency_id")
+    private Competency competency;
 
     private Double totalScore;
 

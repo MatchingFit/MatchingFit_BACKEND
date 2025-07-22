@@ -2,13 +2,14 @@ package com.example.matching_fit.domain.resume.entity;
 
 
 import com.example.matching_fit.domain.user.entity.User;
+import lombok.Getter;
 import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
-
+@Getter
 @Entity
 @Table(name = "resumes")
 public class Resume {
