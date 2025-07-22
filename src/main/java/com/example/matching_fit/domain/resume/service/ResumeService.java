@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @Slf4j
@@ -54,7 +57,7 @@ public class ResumeService {
         log.info("[⏱️ 이력서 텍스트 추출 시간] " + (endFetch - startFetch) + "ms");
 
         // 이력서를 쪼개서 분석
-        List<String> chunks = splitTextIntoChunks(text, 1500);
+        List<String> chunks = splitTextIntoChunks(text, 3000);
 
         long startAnalyze = System.currentTimeMillis();
         ResumeAnalysisResultDto result = analyzeTextChunksWithOpenAI(chunks);
@@ -107,27 +110,31 @@ public class ResumeService {
      * 분할된 이력서 조각을 순차적으로 분석하고 이어붙임
      */
     private ResumeAnalysisResultDto analyzeTextChunksWithOpenAI(List<String> chunks) {
-        List<ResumeAnalysisResultDto.ChunkAnalysis> chunkAnalyses = new ArrayList<>();
+        ExecutorService executor = Executors.newFixedThreadPool(4); // 병렬 처리
+        List<CompletableFuture<ResumeAnalysisResultDto.ChunkAnalysis>> futures = new ArrayList<>();
 
         for (int i = 0; i < chunks.size(); i++) {
-            String prompt = (i == 0)
-                    ? "다음 이력서를 한국어로 분석해줘:\n" + chunks.get(i)
-                    : "이전 분석 내용을 기반으로 다음 이력서 내용을 한국어로 계속 분석해줘:\n" + chunks.get(i);
+            final int partNumber = i + 1;
+            final String chunk = chunks.get(i);
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                String prompt = "다음 이력서 내용을 분석하고, 1000자 이내로 요약까지 함께 작성해줘.\n" +
+                        "분석 결과를 먼저 쓰고, 마지막에 [요약:] 뒤에 요약을 적어줘:\n\n" + chunk;
+                String response = sendChatCompletion(prompt);
+                String[] split = response.split("요약[:：]?", 2);
 
-            String analysis = sendChatCompletion(prompt);
-
-            // 🔽 분석 결과 요약
-            String summaryPrompt = "다음은 이력서의 일부에 대한 분석 결과입니다. 이 내용을 500자 이내로 간단히 요약해줘:\n" + analysis;
-            String summary = sendChatCompletion(summaryPrompt);
-
-            ResumeAnalysisResultDto.ChunkAnalysis chunkAnalysis = new ResumeAnalysisResultDto.ChunkAnalysis();
-            chunkAnalysis.setPartNumber(i + 1);
-            chunkAnalysis.setOriginalAnalysis(analysis);
-            chunkAnalysis.setSummary(summary);
-            chunkAnalyses.add(chunkAnalysis);
+                ResumeAnalysisResultDto.ChunkAnalysis chunkAnalysis = new ResumeAnalysisResultDto.ChunkAnalysis();
+                chunkAnalysis.setPartNumber(partNumber);
+                chunkAnalysis.setOriginalAnalysis(split[0].trim());
+                chunkAnalysis.setSummary(split.length > 1 ? split[1].trim() : "");
+                return chunkAnalysis;
+            }, executor));
         }
 
-        // ✅ 최종 요약
+        List<ResumeAnalysisResultDto.ChunkAnalysis> chunkAnalyses = futures.stream()
+                .map(CompletableFuture::join)
+                .toList();
+
+        // 🔽 최종 요약 생성
         StringBuilder combinedSummaries = new StringBuilder();
         for (ResumeAnalysisResultDto.ChunkAnalysis c : chunkAnalyses) {
             combinedSummaries.append("[").append(c.getPartNumber()).append("부 요약] ")
@@ -150,7 +157,6 @@ public class ResumeService {
         ResumeAnalysisResultDto resultDto = new ResumeAnalysisResultDto();
         resultDto.setChunkAnalyses(chunkAnalyses);
         resultDto.setFinalSummary(finalSummary);
-
         return resultDto;
     }
 
@@ -165,12 +171,12 @@ public class ResumeService {
         headers.setBearerAuth(openAiApiKey);
 
         Map<String, Object> requestBody = Map.of(
-                "model", "gpt-3.5-turbo",  // 가능한 모델 이름으로 변경
+                "model", "gpt-3.5-turbo-1106",  // ✅ 더 빠르고 context 길이 김
                 "messages", List.of(
                         Map.of("role", "system", "content", "당신은 이력서 분석 도우미입니다."),
                         Map.of("role", "user", "content", userContent)
                 ),
-                "max_tokens", 1000,
+                "max_tokens", 1200,
                 "temperature", 0.2
         );
 
