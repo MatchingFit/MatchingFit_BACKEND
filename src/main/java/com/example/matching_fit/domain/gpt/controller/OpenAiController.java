@@ -1,6 +1,7 @@
 package com.example.matching_fit.domain.gpt.controller;
 
 import com.example.matching_fit.domain.gpt.service.OpenAiService;
+import com.example.matching_fit.domain.resume.dto.ResumeAnalysisResultDto;
 import com.example.matching_fit.domain.resume.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,17 +23,9 @@ public class OpenAiController {
         return openAiService.getChatCompletion(prompt);
     }
 
-    @GetMapping("/{id}/analyze")
-    public ResponseEntity<String> analyzeResume(@PathVariable Long id) {
-        try {
-            String result = resumeService.analyzeResumeById(id);
-            return ResponseEntity.ok(result);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-        }
+    @GetMapping("/resumes/{id}/analyze")
+    public ResponseEntity<ResumeAnalysisResultDto> analyzeResume(@PathVariable Long id) throws Exception {
+        ResumeAnalysisResultDto result = resumeService.analyzeResumeById(id);
+        return ResponseEntity.ok(result);
     }
 }

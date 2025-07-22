@@ -1,6 +1,7 @@
 package com.example.matching_fit.domain.resume.service;
 
 import com.example.matching_fit.domain.gpt.service.OpenAiService;
+import com.example.matching_fit.domain.resume.dto.ResumeAnalysisResultDto;
 import com.example.matching_fit.domain.resume.dto.ResumeTextDto;
 import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
@@ -40,7 +41,7 @@ public class ResumeService {
         this.restTemplate = new RestTemplate();
     }
 
-    public String analyzeResumeById(Long id) throws Exception {
+    public ResumeAnalysisResultDto analyzeResumeById(Long id) throws Exception {
         ResumeTextDto resumeDto = resumeRepository.findResumeTextDtoById(id)
                 .orElseThrow(() -> new NoSuchElementException("이력서가 존재하지 않습니다. id=" + id));
 
@@ -52,7 +53,7 @@ public class ResumeService {
         String text = fetchTextFromS3(textS3Url);
 
         // 이력서를 쪼개서 분석
-        List<String> chunks = splitTextIntoChunks(text, 1500); // 1500자 기준 문단 분할
+        List<String> chunks = splitTextIntoChunks(text, 1500);
         return analyzeTextChunksWithOpenAI(chunks);
     }
 
@@ -94,20 +95,61 @@ public class ResumeService {
     /**
      * 분할된 이력서 조각을 순차적으로 분석하고 이어붙임
      */
-    private String analyzeTextChunksWithOpenAI(List<String> chunks) {
-        StringBuilder fullResult = new StringBuilder();
+    private ResumeAnalysisResultDto analyzeTextChunksWithOpenAI(List<String> chunks) {
+        List<ResumeAnalysisResultDto.ChunkAnalysis> chunkAnalyses = new ArrayList<>();
 
         for (int i = 0; i < chunks.size(); i++) {
             String prompt = (i == 0)
-                    ? "다음 이력서를 분석해줘:\n" + chunks.get(i)
-                    : "이전 분석 내용을 기반으로 다음 이력서 내용을 계속 분석해줘:\n" + chunks.get(i);
+                    ? "다음 이력서를 한국어로 분석해줘:\n" + chunks.get(i)
+                    : "이전 분석 내용을 기반으로 다음 이력서 내용을 한국어로 계속 분석해줘:\n" + chunks.get(i);
 
-            String result = sendChatCompletion(prompt);
-            fullResult.append("=== 분석 ").append(i + 1).append("부 ===\n");
-            fullResult.append(result).append("\n\n");
+            String analysis = sendChatCompletion(prompt);
+
+            // 🔽 분석 결과 요약
+            String summaryPrompt = "다음은 이력서의 일부에 대한 분석 결과입니다. 이 내용을 500자 이내로 간단히 요약해줘:\n" + analysis;
+            String summary = sendChatCompletion(summaryPrompt);
+
+            ResumeAnalysisResultDto.ChunkAnalysis chunkAnalysis = new ResumeAnalysisResultDto.ChunkAnalysis();
+            chunkAnalysis.setPartNumber(i + 1);
+            chunkAnalysis.setOriginalAnalysis(analysis);
+            chunkAnalysis.setSummary(summary);
+            chunkAnalyses.add(chunkAnalysis);
         }
 
-        return fullResult.toString();
+        // ✅ 최종 요약
+        StringBuilder combinedSummaries = new StringBuilder();
+        for (ResumeAnalysisResultDto.ChunkAnalysis c : chunkAnalyses) {
+            combinedSummaries.append("[").append(c.getPartNumber()).append("부 요약] ")
+                    .append(c.getSummary()).append("\n");
+        }
+
+        String finalSummaryPrompt =
+                "다음은 이력서를 여러 부분으로 나누어 분석한 후 각각 요약한 내용입니다.\n" +
+                        "이를 종합해 아래 기준에 따라 이력서를 한국어로 최종 요약해줘:\n\n" +
+                        "1. 핵심 강점 (3가지 정도)\n" +
+                        "2. 보완할 점 또는 약점 (2~3가지)\n" +
+                        "3. 기술 스택 요약\n" +
+                        "4. 추천 직무 또는 포지션\n\n" +
+                        "요약된 분석들:\n" + combinedSummaries;
+
+        String finalSummary = sendChatCompletion(finalSummaryPrompt);
+
+        ResumeAnalysisResultDto resultDto = new ResumeAnalysisResultDto();
+        resultDto.setChunkAnalyses(chunkAnalyses);
+        resultDto.setFinalSummary(finalSummary);
+
+        return resultDto;
+    }
+
+    private String summarizeFinalAnalysis(String fullAnalysis) {
+        String prompt = "다음은 이력서를 나눠서 분석한 결과입니다. 이 내용을 바탕으로 아래 기준에 따라 최종 요약해줘:\n\n" +
+                "1. 핵심 강점 (3가지 정도)\n" +
+                "2. 보완할 점 또는 약점 (2~3가지)\n" +
+                "3. 기술 스택 요약\n" +
+                "4. 추천 직무 또는 포지션\n\n" +
+                "이력서 분석 결과:\n" + fullAnalysis;
+
+        return sendChatCompletion(prompt);
     }
 
     /**
