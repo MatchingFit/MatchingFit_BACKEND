@@ -1,11 +1,8 @@
 package com.example.matching_fit.domain.resume.service;
 
-import com.example.matching_fit.domain.gpt.service.OpenAiService;
 import com.example.matching_fit.domain.resume.dto.ResumeAnalysisResultDto;
 import com.example.matching_fit.domain.resume.dto.ResumeTextDto;
-import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -27,15 +24,12 @@ import java.util.concurrent.Executors;
 public class ResumeService {
 
     private final ResumeRepository resumeRepository;
-    private final OpenAiService openAiService;
     private final String openAiApiKey;
     private final RestTemplate restTemplate;
 
     public ResumeService(ResumeRepository resumeRepository,
-                         OpenAiService openAiService,
                          @Value("${openai.api.key}") String openAiApiKey) {
         this.resumeRepository = resumeRepository;
-        this.openAiService = openAiService;
         this.openAiApiKey = openAiApiKey;
         this.restTemplate = new RestTemplate();
     }
