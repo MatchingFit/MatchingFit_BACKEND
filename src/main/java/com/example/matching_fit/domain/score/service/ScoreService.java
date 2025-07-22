@@ -52,17 +52,6 @@ public class ScoreService {
                         .findByKeyword(keyword.getKeyword())
                         .orElseThrow(() -> new IllegalArgumentException("키워드 임베딩 없음"));
                 List<Double> keywordEmbedding = keywordEmbeddingEntity.getEmbeddingVectorAsList();
-                //위에꺼임
-                //엘라스틱서치에 접근해서 키워드 임베딩을 해둘껀데 인덱스제목은 역량 영어로 이렇게 구현이 됨
-                //엘라스틱 서치로 받아서 하는걸로
-                //스피링에서 엘라스틱서치문에서 마이에스큐엘 쿼리문이 달림 자연어
-                //crud형식으로 쿼리문을 보냄
-                //스프링에서 엘라스틱서치 쿼리문 날리는법 알아보기
-                //키바나 5601 왼쪽 상단 버튼 누른 후 데브툴스에 가면 테스트하기 쿼리문을 넣어서 //체크용 어떤식으로 값이나오는지
-
-                //이게 목표임
-                //파이썬에서 저장해서 주는것을 코사인유사도(엘라스틱서치로)로 계산
-                //이게 프론트로 가서 값을 보여주는형식
 
                 // 이력서와 키워드 임베딩 간 코사인 유사도 점수 계산
                 double rawScore = embeddingService.cosineSimilarity(resumeEmbedding, keywordEmbedding);

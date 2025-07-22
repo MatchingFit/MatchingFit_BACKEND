@@ -3,8 +3,13 @@ package com.example.matching_fit.domain.score.entity;
 public enum Category {
     BACKEND("백엔드"),
     FRONTEND("프론트엔드"),
-    UI_UX("UI/UX"),
-    GROWTH_MARKETING("그로스마케팅");
+    MOBILE("모바일 개발"),
+    DESIGN("디자인"),
+    CLOUD("클라우드"),
+    DATA_ANALYSIS("데이터 분석"),
+    BLOCKCHAIN("블록체인"),
+    GAME("게임 개발"),
+    MARKETING("마케팅");
 
     private final String label;
 
