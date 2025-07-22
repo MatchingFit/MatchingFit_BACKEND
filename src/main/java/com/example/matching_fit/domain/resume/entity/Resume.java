@@ -2,6 +2,7 @@ package com.example.matching_fit.domain.resume.entity;
 
 
 import com.example.matching_fit.domain.user.entity.User;
+import lombok.Getter;
 import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,6 +11,7 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
 @Table(name = "resumes")
 public class Resume {
 
@@ -18,18 +20,19 @@ public class Resume {
     private Long id;
 
     @Column(name = "file_url")
-    private String fileUrl;
+    private String fileUrl; //파일 url
 
     @Column(name = "text_s3_url")
-    private String textS3Url;
+    private String textS3Url; //텍스트 추출 파일
 
     @Lob
     @Column(columnDefinition = "TEXT")
-    private String previewText;
+    private String previewText; //텍스트 요약 제목
 
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
-    private Double[] embedding;
+    private double[] embedding; //임베딩
+
 
     @Column(name = "job_field", length = 50)
     private String jobField;
