@@ -17,7 +17,6 @@ import java.util.List;
 
 @Getter
 @Entity
-@Getter
 @Table(name = "resumes")
 @Builder
 public class Resume {
@@ -38,7 +37,7 @@ public class Resume {
 
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
-    private double[] embedding; //임베딩
+    private Double[] embedding; //임베딩
 
 
     @Column(name = "job_field", length = 50)
