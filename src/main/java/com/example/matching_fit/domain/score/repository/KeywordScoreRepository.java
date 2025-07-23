@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface KeywordScoreRepository extends JpaRepository<KeywordScore, Long> {
-    List<KeywordScore> findByCompetencyAndResumeIdAndUserId(Competency competency, Long resumeId, Long userId);
+    List<KeywordScore> findByResumeId(Long resumeId);
 }

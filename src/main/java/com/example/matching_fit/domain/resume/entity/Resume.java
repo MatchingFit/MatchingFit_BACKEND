@@ -1,7 +1,10 @@
 package com.example.matching_fit.domain.resume.entity;
 
 
+import com.example.matching_fit.domain.score.entity.CompetencyScore;
+import com.example.matching_fit.domain.score.entity.KeywordScore;
 import com.example.matching_fit.domain.user.entity.User;
+import lombok.Builder;
 import lombok.Getter;
 import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
@@ -9,9 +12,13 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @Table(name = "resumes")
+@Builder
 public class Resume {
 
     @Id
@@ -51,4 +58,13 @@ public class Resume {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    //추가
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CompetencyScore> competencyScores = new ArrayList<>();
+
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<KeywordScore> keywordScores = new ArrayList<>();
 }

@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "keyword")
+@Table(name = "keywords")
 public class Keyword {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,6 +41,7 @@ public class Keyword {
 
     //추가 한개의 키워드가 여러개의 점수를 가질수있음
     @OneToMany(mappedBy = "keyword", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<KeywordScore> keywordScores = new ArrayList<>();
 
 }
