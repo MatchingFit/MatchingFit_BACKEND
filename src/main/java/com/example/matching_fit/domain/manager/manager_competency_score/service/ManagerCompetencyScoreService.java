@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,5 +46,20 @@ public class ManagerCompetencyScoreService {
             // 저장
             scoreRepository.save(score);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getTop3Competencies(Long managerId) {
+        List<Object[]> results = scoreRepository.findTop3CompetencyScoresWithRank(managerId);
+
+        return results.stream()
+                .map(row -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("competencyId", ((Number)row[0]).longValue());
+                    map.put("competencyScore", ((Number)row[1]).intValue());
+                    map.put("rank", ((Number)row[2]).intValue());
+                    return map;
+                })
+                .collect(Collectors.toList());
     }
 }

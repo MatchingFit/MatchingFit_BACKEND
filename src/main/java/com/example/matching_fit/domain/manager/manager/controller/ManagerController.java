@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/managers")
@@ -19,6 +20,7 @@ public class ManagerController {
 
     private final ManagerService managerService;
     private final ManagerCompetencyScoreService scoreService;
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<?>> createManager(@RequestBody ManagerDto managerDto) {
@@ -42,5 +44,11 @@ public class ManagerController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
         }
+    }
+
+    @GetMapping("/{managerId}/top3")
+    public ResponseEntity<List<Map<String, Object>>> getTop3Competencies(@PathVariable Long managerId) {
+        List<Map<String, Object>> top3 = scoreService.getTop3Competencies(managerId);
+        return ResponseEntity.ok(top3);
     }
 }
