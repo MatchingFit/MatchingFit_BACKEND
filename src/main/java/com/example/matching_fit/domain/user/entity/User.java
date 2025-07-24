@@ -65,12 +65,4 @@ public class User{
         return authorities;
     }
 
-    //추가
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<CompetencyScore> competencyScores = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<KeywordScore> keywordScores = new ArrayList<>();
 }

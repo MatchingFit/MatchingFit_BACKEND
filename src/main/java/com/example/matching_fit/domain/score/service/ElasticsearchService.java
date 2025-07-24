@@ -10,6 +10,7 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
+import com.example.matching_fit.domain.score.dto.KeywordScoreDTO;
 import com.example.matching_fit.domain.score.entity.Keyword;
 import com.example.matching_fit.domain.score.entity.KeywordScore;
 import com.example.matching_fit.domain.score.repository.KeywordRepository;
@@ -27,7 +28,7 @@ public class ElasticsearchService {
     private final KeywordRepository keywordRepository;
     private final KeywordScoreRepository keywordScoreRepository;
 
-    public List<Double> getAllCosineScores(Long resumeId) {
+    public List<KeywordScoreDTO> getAllCosineScoreDTOs(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(()-> new IllegalArgumentException("이력서 없음"));
         Double[] resumeArr = resume.getEmbedding();
@@ -48,8 +49,8 @@ public class ElasticsearchService {
 
         //엘라스틱 서치 최대한번만 돌리기(만번)
         int MAX_RESULTS = 10000;
-        List<Double> allScores = new ArrayList<>();
-        List<KeywordScore> ksEntities = new ArrayList<>(); // [저장할 엔티티 컬렉션]
+        List<KeywordScore> ksEntities = new ArrayList<>(); // 저장할 엔티티 컬렉션
+        List<KeywordScoreDTO> ksdtoList = new ArrayList<>(); // DTO리스트
 
         try {
             SearchRequest searchRequest = SearchRequest.of(b -> b
@@ -72,26 +73,36 @@ public class ElasticsearchService {
             if (hits != null && !hits.isEmpty()) {
                 for (Hit<Object> hit : hits) {
                     double score = (hit.score() != null ? hit.score() - 1.0 : 0.0);
-                    allScores.add(score);
 
                     // hit.source로 keywordId(혹은 해당 고유값) 추출
                     String keywordId = null;
-                    if (hit.source() instanceof Map) {
-                        Map<String, Object> src = (Map<String, Object>) hit.source();
-                        keywordId = src.get("your_id_field").toString(); // 엘라스틱서치 각 문서의 고유식별자 필드명
+                    if (hit.source() instanceof Map<?, ?> src) {
+                        Object idObj = src.get("your_id_field"); // 엘라스틱서치 각 문서의 고유식별자 필드명
+                        if (idObj != null) {
+                            keywordId = idObj.toString();
+                        }
                     }
 
                     if (keywordId != null) {
                         Keyword keyword = keywordRepository.findById(Long.parseLong(keywordId)).orElse(null);
                         if (keyword != null) {
                             KeywordScore keywordScore = KeywordScore.builder()
-                                    .user(resume.getUser())
                                     .resume(resume)
                                     .competency(keyword.getCompetency()) // 역량정보도 연결
                                     .keyword(keyword)
                                     .score(score)
                                     .build();
                             ksEntities.add(keywordScore);
+
+                            // 추가
+                            ksdtoList.add(KeywordScoreDTO.builder()
+                                    .keywordName(keyword.getKeyword())
+                                    .score(score)
+                                    .category(keyword.getCategory())
+                                    .userId(resume.getUser().getId())
+                                    .userName(resume.getUser().getName())
+                                    .build()
+                            );
                         }
                     }
                 }
@@ -103,6 +114,6 @@ public class ElasticsearchService {
         } catch (Exception e) {
             throw new RuntimeException("Elasticsearch 유사도 연산/점수 저장 실패", e);
         }
-        return allScores;
+        return ksdtoList;
     }
 }
