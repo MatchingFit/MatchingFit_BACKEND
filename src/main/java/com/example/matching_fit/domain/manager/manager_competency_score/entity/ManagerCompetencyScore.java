@@ -1,8 +1,7 @@
 package com.example.matching_fit.domain.manager.manager_competency_score.entity;
 
 import com.example.matching_fit.domain.manager.manager.entity.Manager;
-import com.example.matching_fit.domain.resume.entity.Resume;
-import com.example.matching_fit.domain.score.competency.entity.Competency;
+import com.example.matching_fit.domain.score.entity.Competency;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

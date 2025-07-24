@@ -5,8 +5,8 @@ import com.example.matching_fit.domain.manager.manager.repository.ManagerReposit
 import com.example.matching_fit.domain.manager.manager_competency_score.dto.ManagerCompetencyScoreRequestDto;
 import com.example.matching_fit.domain.manager.manager_competency_score.entity.ManagerCompetencyScore;
 import com.example.matching_fit.domain.manager.manager_competency_score.repository.ManagerCompetencyScoreRepository;
-import com.example.matching_fit.domain.score.competency.entity.Competency;
-import com.example.matching_fit.domain.score.competency.repository.CompetencyRepository;
+import com.example.matching_fit.domain.score.entity.Competency;
+import com.example.matching_fit.domain.score.repository.CompetencyRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
