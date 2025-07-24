@@ -3,7 +3,10 @@ package com.example.matching_fit.domain.manager.manager.controller;
 import com.example.matching_fit.domain.manager.manager.dto.ManagerDto;
 import com.example.matching_fit.domain.manager.manager.service.ManagerService;
 import com.example.matching_fit.domain.manager.manager_competency_score.dto.ManagerCompetencyScoreRequestDto;
+import com.example.matching_fit.domain.manager.manager_competency_score.dto.ManagerScoreRequestWrapperDto;
 import com.example.matching_fit.domain.manager.manager_competency_score.service.ManagerCompetencyScoreService;
+import com.example.matching_fit.domain.score.dto.ResumeSimilarityDto;
+import com.example.matching_fit.domain.score.service.CompetencyScoreService;
 import com.example.matching_fit.global.rp.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +23,7 @@ public class ManagerController {
 
     private final ManagerService managerService;
     private final ManagerCompetencyScoreService scoreService;
+    private final CompetencyScoreService competencyScoreService;
 
 
     @PostMapping
@@ -32,14 +36,10 @@ public class ManagerController {
     @PostMapping("/{managerId}")
     public ResponseEntity<ApiResponse<?>> saveScores(
             @PathVariable Long managerId,
-            @RequestBody List<ManagerCompetencyScoreRequestDto> scoreDtos) {
-
-        for (ManagerCompetencyScoreRequestDto dto : scoreDtos) {
-            System.out.println("Received - Competency ID: " + dto.getCompetencyId() + ", Score: " + dto.getScore());
-        }
+            @RequestBody ManagerScoreRequestWrapperDto requestDto) {
 
         try {
-            scoreService.saveScores(managerId, scoreDtos);
+            scoreService.saveScoresByName(managerId, requestDto.getScores());
             return ResponseEntity.ok().body(ApiResponse.success(null, "입력 성공!"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
@@ -50,5 +50,11 @@ public class ManagerController {
     public ResponseEntity<List<Map<String, Object>>> getTop3Competencies(@PathVariable Long managerId) {
         List<Map<String, Object>> top3 = scoreService.getTop3Competencies(managerId);
         return ResponseEntity.ok(top3);
+    }
+
+    @GetMapping("/similar-resumes/top5")
+    public ResponseEntity<List<ResumeSimilarityDto>> getTop5SimilarResumes(@RequestParam Long managerId) {
+        List<ResumeSimilarityDto> result = competencyScoreService.getTop5SimilarResumesWithInfo(managerId);
+        return ResponseEntity.ok(result);
     }
 }

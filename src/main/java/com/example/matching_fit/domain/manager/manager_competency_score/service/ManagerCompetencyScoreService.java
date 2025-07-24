@@ -25,25 +25,23 @@ public class ManagerCompetencyScoreService {
     private final ManagerCompetencyScoreRepository scoreRepository;
 
     @Transactional
-    public void saveScores(Long managerId, List<ManagerCompetencyScoreRequestDto> scoreDtos) {
-        // 매니저 조회
+    public void saveScoresByName(Long managerId, Map<String, Integer> scores) {
         Manager manager = managerRepository.findById(managerId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 매니저가 존재하지 않습니다. id=" + managerId));
 
-        // 각 점수 저장
-        for (ManagerCompetencyScoreRequestDto dto : scoreDtos) {
-            // 역량 조회
-            Competency competency = competencyRepository.findById(dto.getCompetencyId())
-                    .orElseThrow(() -> new IllegalArgumentException("해당 역량이 존재하지 않습니다. id=" + dto.getCompetencyId()));
+        for (Map.Entry<String, Integer> entry : scores.entrySet()) {
+            String competencyName = entry.getKey();
+            Integer scoreValue = entry.getValue();
 
-            // 점수 엔티티 생성
+            Competency competency = competencyRepository.findByName(competencyName)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 역량이 존재하지 않습니다. name=" + competencyName));
+
             ManagerCompetencyScore score = ManagerCompetencyScore.builder()
                     .manager(manager)
                     .competency(competency)
-                    .competencyScore(dto.getScore())
+                    .competencyScore(scoreValue)
                     .build();
 
-            // 저장
             scoreRepository.save(score);
         }
     }
