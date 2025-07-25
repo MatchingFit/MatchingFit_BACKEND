@@ -48,6 +48,21 @@ public class UserController {
         }
     }
 
+    @PostMapping("/manager/join")
+    public ResponseEntity<ApiResponse<String>> joinManager(@RequestBody ManagerJoinRequestDto managerJoinRequestDto) {
+        try {
+            User join = userService.managerJoin(managerJoinRequestDto, LoginType.LOCAL);
+            ApiResponse<String> joinSuccess = ApiResponse.success(join.getEmail(), "회원가입 성공");
+            return ResponseEntity.ok(joinSuccess);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<String> errorResponse = ApiResponse.fail(e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            ApiResponse<String> errorResponse = ApiResponse.fail("알 수 없는 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequestDto loginRequest) {
         try {
