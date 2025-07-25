@@ -2,7 +2,6 @@ package com.example.matching_fit.domain.manager.manager.controller;
 
 import com.example.matching_fit.domain.manager.manager.dto.ManagerDto;
 import com.example.matching_fit.domain.manager.manager.service.ManagerService;
-import com.example.matching_fit.domain.manager.manager_competency_score.dto.ManagerCompetencyScoreRequestDto;
 import com.example.matching_fit.domain.manager.manager_competency_score.dto.ManagerScoreRequestWrapperDto;
 import com.example.matching_fit.domain.manager.manager_competency_score.service.ManagerCompetencyScoreService;
 import com.example.matching_fit.domain.score.dto.ResumeSimilarityDto;

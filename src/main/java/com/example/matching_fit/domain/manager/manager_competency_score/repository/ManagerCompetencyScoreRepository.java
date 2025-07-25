@@ -1,13 +1,11 @@
 package com.example.matching_fit.domain.manager.manager_competency_score.repository;
 
 import com.example.matching_fit.domain.manager.manager_competency_score.entity.ManagerCompetencyScore;
-import com.example.matching_fit.domain.score.entity.Competency;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ManagerCompetencyScoreRepository extends JpaRepository<ManagerCompetencyScore, Long> {
     @Query(value = """
