@@ -64,7 +64,6 @@ public class Resume {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    //추가
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<CompetencyScore> competencyScores = new ArrayList<>();

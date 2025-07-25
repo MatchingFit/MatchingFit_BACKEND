@@ -27,7 +27,6 @@ public class Competency {
     @Builder.Default
     private List<Keyword> keywords = new ArrayList<>();
 
-    //추가 한개의 역량이 여러개의 키워드를 가질수 있음
     @OneToMany(mappedBy = "competency", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<KeywordScore> keywordScores = new ArrayList<>();

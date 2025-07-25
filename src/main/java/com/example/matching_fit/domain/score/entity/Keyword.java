@@ -33,12 +33,10 @@ public class Keyword {
     @JoinColumn(name = "competency_id")
     private Competency competency; //소속역량
 
-    //추가
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
     private Double[] embedding;            // 임베딩 벡터
 
-    //추가 한개의 키워드가 여러개의 점수를 가질수있음
     @OneToMany(mappedBy = "keyword", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<KeywordScore> keywordScores = new ArrayList<>();

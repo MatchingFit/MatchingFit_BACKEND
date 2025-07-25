@@ -39,8 +39,8 @@ public class ScoreService {
                             .keywordName(ks.getKeyword().getKeyword())
                             .score(ks.getScore() != null ? ks.getScore() : 0.0)
                             .category(ks.getKeyword().getCategory())
-                            .userId(ks.getResume().getUser().getId())      // 추가
-                            .userName(ks.getResume().getUser().getName())  // 추가
+                            .userId(ks.getResume().getUser().getId())
+                            .userName(ks.getResume().getUser().getName())
                             .build())
                     .collect(Collectors.toList());
 
@@ -74,8 +74,8 @@ public class ScoreService {
                             .keywordName(ks.getKeyword().getKeyword())
                             .score(ks.getScore() != null ? ks.getScore() : 0.0)
                             .category(ks.getKeyword().getCategory())
-                            .userId(ks.getResume().getUser().getId())      // 추가
-                            .userName(ks.getResume().getUser().getName())  // 추가
+                            .userId(ks.getResume().getUser().getId())
+                            .userName(ks.getResume().getUser().getName())
                             .build())
                     .collect(Collectors.toList());
 

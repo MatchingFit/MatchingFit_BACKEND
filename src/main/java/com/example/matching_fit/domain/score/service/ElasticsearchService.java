@@ -30,7 +30,6 @@ public class ElasticsearchService {
     private final ResumeRepository resumeRepository;
     private final KeywordRepository keywordRepository;
     private final KeywordScoreRepository keywordScoreRepository;
-    //★추가
     private final CompetencyScoreRepository competencyScoreRepository;
     private final CompetencyRepository competencyRepository;
 
@@ -57,7 +56,6 @@ public class ElasticsearchService {
         int MAX_RESULTS = 10000;
         List<KeywordScore> ksEntities = new ArrayList<>(); // 저장할 엔티티 컬렉션
         List<KeywordScoreDTO> ksdtoList = new ArrayList<>(); // DTO리스트
-        //★추가
         Map<String, Double> competencyScoreMap = new HashMap<>(); //역량 점수 저장하는 맵
 
         try {
@@ -95,7 +93,6 @@ public class ElasticsearchService {
                         Keyword keyword = keywordRepository.findById(Long.parseLong(keywordId)).orElse(null);
 
                         if (keyword != null) {
-                            //★추가
                             String competencyName = keyword.getCompetency().getName(); //키워드를 찾아와서 해당키워드의 역량을 가져와서
                             double prev = competencyScoreMap.getOrDefault(competencyName, 0.0); //이전점수를 더해서 역량점수를 합침, 잇으면 점수더하고 없으면 0점으로 추가
                             competencyScoreMap.put(competencyName, prev + score); //역량, 점수를 넣음
@@ -108,7 +105,6 @@ public class ElasticsearchService {
                                     .build();
                             ksEntities.add(keywordScore);
 
-                            // 추가
                             ksdtoList.add(KeywordScoreDTO.builder()
                                     .keywordName(keyword.getKeyword())
                                     .score(score)
@@ -124,7 +120,6 @@ public class ElasticsearchService {
                 if (!ksEntities.isEmpty()) {
                     keywordScoreRepository.saveAll(ksEntities);
                 }
-                //★추가
                 //역량별 점수 DB저장
                 List<CompetencyScore> csEntities = new ArrayList<>();
                 for (Map.Entry<String, Double> entry : competencyScoreMap.entrySet()){
