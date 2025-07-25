@@ -1,18 +1,28 @@
 package com.example.matching_fit.domain.resume.entity;
 
 
+import com.example.matching_fit.domain.score.entity.CompetencyScore;
+import com.example.matching_fit.domain.score.entity.KeywordScore;
 import com.example.matching_fit.domain.user.entity.User;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity
 @Getter
+@Entity
 @Table(name = "resumes")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Resume {
 
     @Id
@@ -31,7 +41,7 @@ public class Resume {
 
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
-    private double[] embedding; //임베딩
+    private Double[] embedding; //임베딩
 
 
     @Column(name = "job_field", length = 50)
@@ -53,4 +63,12 @@ public class Resume {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CompetencyScore> competencyScores = new ArrayList<>();
+
+    @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<KeywordScore> keywordScores = new ArrayList<>();
 }

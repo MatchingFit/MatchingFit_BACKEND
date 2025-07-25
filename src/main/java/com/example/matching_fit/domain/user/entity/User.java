@@ -1,4 +1,5 @@
 package com.example.matching_fit.domain.user.entity;
+
 import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.enums.Role;
 import jakarta.persistence.*;
@@ -62,4 +63,5 @@ public class User{
 
         return authorities;
     }
+
 }
