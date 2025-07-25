@@ -88,7 +88,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
-                "http://localhost","http://localhost:5173", "https://localhost:8080")); // 요청 도메인
+                "http://localhost","http://localhost:5173", "https://localhost:8080", "http://localhost:8000")); // 요청 도메인
         config.setAllowedMethods(List.of("GET", "POST", "OPTIONS", "PUT", "DELETE", "PATCH"));
 
         config.setAllowedHeaders(List.of("*"));

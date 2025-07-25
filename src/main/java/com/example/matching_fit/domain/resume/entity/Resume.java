@@ -1,6 +1,5 @@
 package com.example.matching_fit.domain.resume.entity;
 
-
 import com.example.matching_fit.domain.score.entity.CompetencyScore;
 import com.example.matching_fit.domain.score.entity.KeywordScore;
 import com.example.matching_fit.domain.user.entity.User;
@@ -41,8 +40,7 @@ public class Resume {
 
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
-    private Double[] embedding; //임베딩
-
+    private double[] embedding;
 
     @Column(name = "job_field", length = 50)
     private String jobField;
