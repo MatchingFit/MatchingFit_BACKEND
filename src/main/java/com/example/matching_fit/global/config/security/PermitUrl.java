@@ -14,7 +14,8 @@ public class PermitUrl {
 
     public static final String[] POST_URLS = {
             "/api/v1/users/**", "/api/v1/email/verify",
-            "/api/v1/email/join/send", "/api/v1/token/**", "/api/resume/score"
+            "/api/v1/email/join/send", "/api/v1/token/**",
+            "/api/v1/gpt/**", "/api/resume/score"
     };
 
     public static final String[] PUT_URLS = {
