@@ -10,8 +10,12 @@ import co.elastic.clients.json.JsonData;
 import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
 import com.example.matching_fit.domain.score.dto.KeywordScoreDTO;
+import com.example.matching_fit.domain.score.entity.Competency;
+import com.example.matching_fit.domain.score.entity.CompetencyScore;
 import com.example.matching_fit.domain.score.entity.Keyword;
 import com.example.matching_fit.domain.score.entity.KeywordScore;
+import com.example.matching_fit.domain.score.repository.CompetencyRepository;
+import com.example.matching_fit.domain.score.repository.CompetencyScoreRepository;
 import com.example.matching_fit.domain.score.repository.KeywordRepository;
 import com.example.matching_fit.domain.score.repository.KeywordScoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,9 @@ public class ElasticsearchService {
     private final ResumeRepository resumeRepository;
     private final KeywordRepository keywordRepository;
     private final KeywordScoreRepository keywordScoreRepository;
+    //★추가
+    private final CompetencyScoreRepository competencyScoreRepository;
+    private final CompetencyRepository competencyRepository;
 
     public List<KeywordScoreDTO> getAllCosineScoreDTOs(Long resumeId) {
         Resume resume = resumeRepository.findById(resumeId)
@@ -50,7 +57,8 @@ public class ElasticsearchService {
         int MAX_RESULTS = 10000;
         List<KeywordScore> ksEntities = new ArrayList<>(); // 저장할 엔티티 컬렉션
         List<KeywordScoreDTO> ksdtoList = new ArrayList<>(); // DTO리스트
-        Map<String, Double> competencyScoreMap = new HashMap<>();
+        //★추가
+        Map<String, Double> competencyScoreMap = new HashMap<>(); //역량 점수 저장하는 맵
 
         try {
             SearchRequest searchRequest = SearchRequest.of(b -> b
@@ -86,11 +94,12 @@ public class ElasticsearchService {
                     if (keywordId != null) {
                         Keyword keyword = keywordRepository.findById(Long.parseLong(keywordId)).orElse(null);
 
-                        String competencyName = keyword.getCompetency().getName();
-                        double prev = competencyScoreMap.getOrDefault(competencyName, 0.0);
-                        competencyScoreMap.put(competencyName, prev + score);
-
                         if (keyword != null) {
+                            //★추가
+                            String competencyName = keyword.getCompetency().getName(); //키워드를 찾아와서 해당키워드의 역량을 가져와서
+                            double prev = competencyScoreMap.getOrDefault(competencyName, 0.0); //이전점수를 더해서 역량점수를 합침, 잇으면 점수더하고 없으면 0점으로 추가
+                            competencyScoreMap.put(competencyName, prev + score); //역량, 점수를 넣음
+
                             KeywordScore keywordScore = KeywordScore.builder()
                                     .resume(resume)
                                     .competency(keyword.getCompetency()) // 역량정보도 연결
@@ -115,9 +124,31 @@ public class ElasticsearchService {
                 if (!ksEntities.isEmpty()) {
                     keywordScoreRepository.saveAll(ksEntities);
                 }
+                //★추가
+                //역량별 점수 DB저장
+                List<CompetencyScore> csEntities = new ArrayList<>();
+                for (Map.Entry<String, Double> entry : competencyScoreMap.entrySet()){
+                    String competencyName = entry.getKey();
+                    Double totalScore = entry.getValue();
+
+                    //역량 엔티티 조회
+                    Competency competency = competencyRepository.findByName(competencyName)
+                            .orElseThrow(()-> new IllegalArgumentException("역량 없음" + competencyName));
+
+                    csEntities.add(CompetencyScore.builder()
+                            .resume(resume)
+                            .competency(competency)
+                            .totalScore(totalScore)
+                            .build()
+                    );
+                    // DB 저장(한 번에 일괄 저장)
+                    if (!csEntities.isEmpty()) {
+                        competencyScoreRepository.saveAll(csEntities);
+                    }
+                }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Elasticsearch 유사도 연산/점수 저장 실패", e);
+            throw new IllegalArgumentException("Elasticsearch 유사도 연산/점수 저장 실패", e);
         }
         return ksdtoList;
     }
