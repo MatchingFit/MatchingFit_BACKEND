@@ -1,7 +1,6 @@
 package com.example.matching_fit.domain.manager.manager_competency_score.entity;
-
-import com.example.matching_fit.domain.manager.manager.entity.Manager;
 import com.example.matching_fit.domain.score.entity.Competency;
+import com.example.matching_fit.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +22,7 @@ public class ManagerCompetencyScore {
     private Competency competency;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id", nullable = false)
-    private Manager manager;
+    private User manager;
     @Column(nullable = false)
     private Integer competencyScore;
 }

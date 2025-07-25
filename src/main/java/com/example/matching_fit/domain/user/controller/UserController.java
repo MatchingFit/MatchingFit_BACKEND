@@ -1,5 +1,4 @@
 package com.example.matching_fit.domain.user.controller;
-
 import com.example.matching_fit.domain.user.dto.*;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
@@ -52,6 +51,7 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> joinManager(@RequestBody ManagerJoinRequestDto managerJoinRequestDto) {
         try {
             User join = userService.managerJoin(managerJoinRequestDto, LoginType.LOCAL);
+
             ApiResponse<String> joinSuccess = ApiResponse.success(join.getEmail(), "회원가입 성공");
             return ResponseEntity.ok(joinSuccess);
         } catch (IllegalArgumentException e) {

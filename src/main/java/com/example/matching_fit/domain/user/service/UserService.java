@@ -1,5 +1,4 @@
 package com.example.matching_fit.domain.user.service;
-
 import com.example.matching_fit.domain.user.dto.ManagerJoinRequestDto;
 import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
 import com.example.matching_fit.domain.user.entity.User;
@@ -94,6 +93,7 @@ public class UserService {
                 .name(name)
                 .loginType(loginType)
                 .refreshToken(UUID.randomUUID().toString())
+                .role(Role.USER)
                 .build();
 
         return userRepository.save(user);
@@ -103,24 +103,20 @@ public class UserService {
     public User managerJoin(ManagerJoinRequestDto managerJoinRequestDto, LoginType loginType) {
         String email = managerJoinRequestDto.getEmail();
         String password = managerJoinRequestDto.getPassword();
-        String passwordConfirm = managerJoinRequestDto.getPasswordConfirm(); // 추가
+        String passwordConfirm = managerJoinRequestDto.getPasswordConfirm();
         String name = managerJoinRequestDto.getName();
         String companyName = managerJoinRequestDto.getCompanyName();
 
         validateEmailDuplicate(email);
 
-        // ✅ 영문+숫자 조합 & 10자리 이상 검사
         if (!isValidPassword(password)) {
             throw new IllegalArgumentException("비밀번호는 영문과 숫자를 조합해 10자리 이상이어야 합니다.");
         }
 
-
-        // 비밀번호 & 비밀번호 확인 일치 여부 검사
         if (StringUtils.hasText(password) && !password.equals(passwordConfirm)) {
             throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
         }
 
-        // 비밀번호 암호화 (소셜 로그인 시 비밀번호가 없을 수도 있음)
         if (StringUtils.hasText(password)) {
             password = passwordEncoder.encode(password);
         }
@@ -132,9 +128,14 @@ public class UserService {
                 .loginType(loginType)
                 .companyName(companyName)
                 .refreshToken(UUID.randomUUID().toString())
+                .role(Role.COMPANY)
                 .build();
 
-        return userRepository.save(user);
+        // 먼저 user 저장
+        User savedUser = userRepository.save(user);
+
+
+        return savedUser;
     }
 
     @Transactional

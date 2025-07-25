@@ -17,9 +17,4 @@ public class CompetencyScoreController {
 
     private final CompetencyScoreService competencyScoreService;
 
-    @GetMapping("/top3")
-    public ResponseEntity<List<CompetencyScoreTop3Dto>> getTop3ScoresPerResume() {
-        List<CompetencyScoreTop3Dto> result = competencyScoreService.getTop3CompetenciesPerResume();
-        return ResponseEntity.ok(result);
-    }
 }
