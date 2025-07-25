@@ -1,14 +1,11 @@
 package com.example.matching_fit.domain.score.service;
 
-import com.example.matching_fit.domain.resume.entity.Resume;
-import com.example.matching_fit.domain.resume.repository.ResumeRepository;
 import com.example.matching_fit.domain.score.dto.CompetencyScoreDTO;
 import com.example.matching_fit.domain.score.dto.KeywordScoreDTO;
 import com.example.matching_fit.domain.score.entity.*;
 import com.example.matching_fit.domain.score.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +16,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ScoreService {
     private final KeywordScoreRepository keywordScoreRepository;
-    private final ResumeRepository resumeRepository;
 
     // 전체 점수 이력 조회 - KeywordScore만 사용, 역량별 그룹핑
     public List<CompetencyScoreDTO> findHistoryScore() {

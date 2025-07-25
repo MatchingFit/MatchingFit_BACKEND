@@ -1,6 +1,5 @@
 package com.example.matching_fit.domain.user.entity;
-import com.example.matching_fit.domain.score.entity.CompetencyScore;
-import com.example.matching_fit.domain.score.entity.KeywordScore;
+
 import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.enums.Role;
 import jakarta.persistence.*;

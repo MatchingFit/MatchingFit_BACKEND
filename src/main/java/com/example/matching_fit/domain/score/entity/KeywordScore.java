@@ -1,7 +1,6 @@
 package com.example.matching_fit.domain.score.entity;
 
 import com.example.matching_fit.domain.resume.entity.Resume;
-import com.example.matching_fit.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

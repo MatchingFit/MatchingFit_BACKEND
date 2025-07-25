@@ -1,7 +1,6 @@
 package com.example.matching_fit.domain.score.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.FieldValue;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
@@ -51,6 +50,7 @@ public class ElasticsearchService {
         int MAX_RESULTS = 10000;
         List<KeywordScore> ksEntities = new ArrayList<>(); // 저장할 엔티티 컬렉션
         List<KeywordScoreDTO> ksdtoList = new ArrayList<>(); // DTO리스트
+        Map<String, Double> competencyScoreMap = new HashMap<>();
 
         try {
             SearchRequest searchRequest = SearchRequest.of(b -> b
@@ -85,6 +85,11 @@ public class ElasticsearchService {
 
                     if (keywordId != null) {
                         Keyword keyword = keywordRepository.findById(Long.parseLong(keywordId)).orElse(null);
+
+                        String competencyName = keyword.getCompetency().getName();
+                        double prev = competencyScoreMap.getOrDefault(competencyName, 0.0);
+                        competencyScoreMap.put(competencyName, prev + score);
+
                         if (keyword != null) {
                             KeywordScore keywordScore = KeywordScore.builder()
                                     .resume(resume)
