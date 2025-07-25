@@ -1,12 +1,19 @@
 package com.example.matching_fit.domain.score.service;
 
+import com.example.matching_fit.domain.manager.manager.entity.Manager;
+import com.example.matching_fit.domain.manager.manager.repository.ManagerRepository;
 import com.example.matching_fit.domain.manager.manager_competency_score.entity.ManagerCompetencyScore;
 import com.example.matching_fit.domain.manager.manager_competency_score.repository.ManagerCompetencyScoreRepository;
+import com.example.matching_fit.domain.manager.resume_matching_result.entity.ResumeMatchingResult;
+import com.example.matching_fit.domain.manager.resume_matching_result.repository.ResumeMatchingResultRepository;
 import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
 import com.example.matching_fit.domain.score.dto.CompetencyScoreTop3Dto;
 import com.example.matching_fit.domain.score.dto.ResumeSimilarityDto;
 import com.example.matching_fit.domain.score.repository.CompetencyScoreRepository;
+import com.example.matching_fit.domain.user.entity.User;
+import com.example.matching_fit.domain.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +30,9 @@ public class CompetencyScoreService {
     private final CompetencyScoreRepository competencyScoreRepository;
     private final ManagerCompetencyScoreRepository scoreRepository;
     private final ResumeRepository resumeRepository;
+    private final UserRepository userRepository;
+    private final ManagerRepository managerRepository;
+    private final ResumeMatchingResultRepository resumeMatchingResultRepository;
 
     public List<CompetencyScoreTop3Dto> getTop3CompetenciesPerResume() {
         List<Object[]> result = competencyScoreRepository.findAllWithRanking();
@@ -38,7 +48,7 @@ public class CompetencyScoreService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ResumeSimilarityDto> getTop5SimilarResumesWithInfo(Long managerId) {
         // 1. 매니저 Top3 역량(competencyId, rank) 조회
         List<Object[]> managerTop3Raw = scoreRepository.findTop3CompetencyScoresWithRank(managerId);
@@ -103,10 +113,10 @@ public class CompetencyScoreService {
             return List.of(); // 유사 이력서 없으면 빈 리스트 반환
         }
 
-        // 6. DTO 리스트 조회 (이미 DTO로 반환됨)
+        // 6. DTO 리스트 조회
         List<ResumeSimilarityDto> resumeDtos = resumeRepository.findResumeSimilarityDtosByIds(top5ResumeIds);
 
-        // 7. DTO 리스트에 similarityScore 매핑 후 정렬 (similarityScore 매개변수는 쿼리용 자리 채움, 실제 점수는 아래에서 설정)
+        // 7. 유사도 점수 매핑 및 정렬
         Map<Long, Integer> similarityScoreMap = resumeSimilarityMap;
         List<ResumeSimilarityDto> result = resumeDtos.stream()
                 .map(dto -> new ResumeSimilarityDto(
@@ -118,6 +128,23 @@ public class CompetencyScoreService {
                 ))
                 .sorted((a, b) -> Integer.compare(b.getSimilarityScore(), a.getSimilarityScore()))
                 .toList();
+
+        // ✅ 8. 결과 저장 (user, manager)
+        Manager manager = managerRepository.findById(managerId)
+                .orElseThrow(() -> new EntityNotFoundException("Manager not found"));
+
+        List<ResumeMatchingResult> matchingResults = result.stream()
+                .map(dto -> {
+                    User user = userRepository.findById(dto.getUserId())
+                            .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                    return ResumeMatchingResult.builder()
+                            .manager(manager)
+                            .user(user)
+                            .build();
+                })
+                .toList();
+
+        resumeMatchingResultRepository.saveAll(matchingResults); // 저장
 
         return result;
     }
