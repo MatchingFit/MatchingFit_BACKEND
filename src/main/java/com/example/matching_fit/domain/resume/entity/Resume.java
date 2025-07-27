@@ -40,7 +40,7 @@ public class Resume {
 
     @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
     @Column(columnDefinition = "vector(768)")
-    private double[] embedding;
+    private Double[] embedding;
 
     @Column(name = "job_field", length = 50)
     private String jobField;
