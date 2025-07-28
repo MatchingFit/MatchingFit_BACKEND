@@ -1,5 +1,5 @@
 package com.example.matching_fit.domain.score.entity;
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,3 +32,4 @@ public class Competency {
     private List<KeywordScore> keywordScores = new ArrayList<>();
 
 }
+

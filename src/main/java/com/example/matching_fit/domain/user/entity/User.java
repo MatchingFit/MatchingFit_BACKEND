@@ -38,6 +38,8 @@ public class User{
     private LoginType loginType;
     @Column(length = 255)
     private String refreshToken;
+    @Column
+    private String companyName;
     @Enumerated(EnumType.STRING)
     private Role role;
     @CreatedDate

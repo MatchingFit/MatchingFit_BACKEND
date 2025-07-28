@@ -1,5 +1,4 @@
 package com.example.matching_fit.domain.user.controller;
-
 import com.example.matching_fit.domain.user.dto.*;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
@@ -48,6 +47,22 @@ public class UserController {
         }
     }
 
+    @PostMapping("/manager/join")
+    public ResponseEntity<ApiResponse<String>> joinManager(@RequestBody ManagerJoinRequestDto managerJoinRequestDto) {
+        try {
+            User join = userService.managerJoin(managerJoinRequestDto, LoginType.LOCAL);
+
+            ApiResponse<String> joinSuccess = ApiResponse.success(join.getEmail(), "회원가입 성공");
+            return ResponseEntity.ok(joinSuccess);
+        } catch (IllegalArgumentException e) {
+            ApiResponse<String> errorResponse = ApiResponse.fail(e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        } catch (Exception e) {
+            ApiResponse<String> errorResponse = ApiResponse.fail("알 수 없는 오류가 발생했습니다.");
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
+    }
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<?>> login(@RequestBody LoginRequestDto loginRequest) {
         try {
@@ -75,10 +90,12 @@ public class UserController {
                     .sameSite("Strict")
                     .build();
 
-            // 6. 성공 응답
+            // 6. 응답에 accessToken + role 포함
+            LoginResponseDto responseDto = new LoginResponseDto(user.getName(),user.getRole().name());
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                    .body(ApiResponse.success(accessToken, "로그인 성공!"));
+                    .body(ApiResponse.success(responseDto, "로그인 성공!"));
 
         } catch (RuntimeException ex) {
             String msg = ex.getMessage();
@@ -88,7 +105,6 @@ public class UserController {
                         .body(ApiResponse.fail(msg));
             }
 
-            // 그 외 예외는 500
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.fail(msg));
         }
@@ -137,6 +153,7 @@ public class UserController {
                 .kakaoId(user.getKakaoId())
                 .loginType(user.getLoginType())
                 .createdAt(user.getCreatedAt())
+                .role(user.getRole().name())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));

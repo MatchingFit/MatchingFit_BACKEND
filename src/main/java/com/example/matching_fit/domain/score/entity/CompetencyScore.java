@@ -2,13 +2,11 @@ package com.example.matching_fit.domain.score.entity;
 
 import com.example.matching_fit.domain.resume.entity.Resume;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

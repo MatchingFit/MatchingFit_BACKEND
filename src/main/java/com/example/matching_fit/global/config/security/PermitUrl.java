@@ -9,13 +9,15 @@ public class PermitUrl {
     };
     public static final String[] GET_URLS = {
             "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/api/v1/users/check-email",
-            "/api/v1/gpt/**", "/api/v1/gpt/resumes/**"
+            "/api/v1/gpt/**", "/api/v1/gpt/resumes/**",
+            "/api/v1/competencyscores/**"
     };
 
     public static final String[] POST_URLS = {
             "/api/v1/users/**", "/api/v1/email/verify",
             "/api/v1/email/join/send", "/api/v1/token/**",
-            "/api/score/total"
+            "/api/score/total", "/api/v1/managers/**",
+            "/api/v1/gpt/**","/api/v1/managers/**"
     };
 
     public static final String[] PUT_URLS = {
