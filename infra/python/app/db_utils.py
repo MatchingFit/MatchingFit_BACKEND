@@ -1,8 +1,46 @@
 import psycopg2
 import logging
 from app.config import DATABASE_URL
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey
+from sqlalchemy.orm import sessionmaker, relationship, declarative_base
 
 logger = logging.getLogger(__name__)
+
+# SQLAlchemy 세팅
+Base = declarative_base()
+
+class Competency(Base):
+    __tablename__ = "competencies"
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    keywords = relationship("Keyword", back_populates="competency")
+
+class Keyword(Base):
+    __tablename__ = "keywords"
+    id = Column(Integer, primary_key=True)
+    keyword = Column(String)
+    weight_score = Column(Float)
+    competency_id = Column(Integer, ForeignKey("competencies.id"))
+    competency = relationship("Competency", back_populates="keywords")
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine)
+
+def get_all_keywords_for_embedding(db):
+    try:
+        keywords = db.query(Keyword).join(Keyword.competency).all()
+        result = []
+        for k in keywords:
+            result.append({
+                "id": k.id,
+                "keyword": k.keyword,
+                "competency_id": k.competency.id,
+                "weight_score": k.weight_score
+            })
+        return result
+    except Exception as e:
+        logger.exception("[키워드 조회 실패]")
+        raise
 
 def save_resume_info_to_db(
         user_id: int,

@@ -42,8 +42,6 @@ infra/postgres/db/
 infra/elasticsearch/data
 infra/.env
 
-
-
 ##redis###
 infra/redis
 

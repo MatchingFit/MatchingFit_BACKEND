@@ -7,6 +7,7 @@ from app.extractor import extract_text
 from app.embedding import embed_resume
 from app.s3_utils import upload_to_s3, upload_text_to_s3
 from app.db_utils import save_resume_info_to_db
+from app.elastic_utils import create_keyword_index_if_needed, index_keywords_batch
 from app.config import SPRING_API_URL
 
 logging.basicConfig(level=logging.INFO)
@@ -21,13 +22,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.post("/initialize_keywords")
+def initialize_keywords():
+    create_keyword_index_if_needed()
+    index_keywords_batch()
+    return {"status": "success"}
+
 @app.post("/resume/process")
 async def process_resume(
         file: UploadFile = File(...),
         job_field: str = Form(...),
-        user_id: int = Form(...),
+        user_id: str = Form(...),
 ):
     try:
+        user_id_int = int(user_id)
+
         text = extract_text(file)
         embedding = embed_resume(text)
 
@@ -38,7 +47,7 @@ async def process_resume(
         preview = text[:300]
 
         resume_id = save_resume_info_to_db(
-            user_id=user_id,
+            user_id=user_id_int,
             file_url=file_url,
             text_s3_url=text_url,
             preview_text=preview,
@@ -74,3 +83,4 @@ async def process_resume(
     except Exception as e:
         logger.error(f"전체 처리 실패: {e}")
         return JSONResponse(status_code=500, content={"detail": str(e)})
+

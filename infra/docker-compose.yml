@@ -18,6 +18,8 @@ services:
     build:
       context: ./python
       dockerfile: dockerfile_python
+      args:
+        HUGGING_FACE_TOKEN: ${HUGGING_FACE_TOKEN}
     container_name: MatchingFit-Analyzer
     ports:
       - "${ANALYZER_EXTERNAL_PORT}:${ANALYZER_INTERNAL_PORT}"
@@ -27,6 +29,7 @@ services:
       - .env
     depends_on:
       - postgres
+      - elasticsearch
 
   frontend:
     build:
@@ -37,6 +40,8 @@ services:
       - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
     networks:
       - MatchingFit_network
+    env_file:
+      - .env
 
   nginx:
     image: nginx:alpine

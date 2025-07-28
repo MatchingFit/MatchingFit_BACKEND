@@ -28,6 +28,6 @@ public interface CompetencyScoreRepository extends JpaRepository<CompetencyScore
     void insertRawScore(@Param("resumeId") Long resumeId,
                         @Param("competencyId") Long competencyId,
                         @Param("score") Double score);
-
+    List<CompetencyScore> findByResumeId(Long resumeId);
 
 }
