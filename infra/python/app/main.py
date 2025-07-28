@@ -55,8 +55,11 @@ async def process_resume(
             job_field=job_field
         )
 
+        logger.info(f"🚀 이력서 분석 시작: resumeId={resume_id}, 임베딩 길이={len(embedding)}")
+
         async with httpx.AsyncClient() as client:
             # 1. 점수 계산 API와 OpenAI 분석 API를 병렬로 호출
+            logger.info("📡 Spring Boot API 병렬 호출 시작")
             score_task = client.post(
                 SPRING_API_URL + "/api/score/total",
                 json={
@@ -84,6 +87,7 @@ async def process_resume(
                 score_result = None
             elif score_spring_response.status_code == 200:
                 competency_scores = score_spring_response.json()
+                logger.info(f"✅ 점수 계산 완료: {len(competency_scores)}개 역량")
 
                 # 역량별 총점과 기술 전문성 키워드만 추출
                 competency_totals = []
@@ -92,6 +96,7 @@ async def process_resume(
                 for competency in competency_scores:
                     competency_name = competency.get('competencyName', 'Unknown')
                     total_score = competency.get('totalScore', 0)
+                    logger.info(f"📊 역량: {competency_name}, 총점: {total_score:.2f}")
 
                     # 역량별 총점 추가
                     competency_totals.append({
@@ -102,25 +107,31 @@ async def process_resume(
                     # 기술 전문성 키워드를 카테고리별로 그룹핑
                     if competency_name == "기술 전문성" and 'keywordScoreDTOS' in competency and competency['keywordScoreDTOS']:
                         keywords = competency['keywordScoreDTOS']
+                        logger.info(f"🔧 기술 키워드 개수: {len(keywords)}개")
 
                         # 카테고리별로 그룹핑
                         for keyword in keywords:
                             category = keyword.get('category', 'UNKNOWN')
+                            # Category enum이 label 값으로 직렬화됨 (예: "백엔드", "프론트엔드" 등)
                             if category not in technical_keywords_by_category:
                                 technical_keywords_by_category[category] = []
                             technical_keywords_by_category[category].append(keyword)
                 
+                # 카테고리별 키워드 개수 로그
+                for category, keywords in technical_keywords_by_category.items():
+                    logger.info(f"📁 {category}: {len(keywords)}개 키워드")
+
                 # 최종 결과 구성
                 score_result = {
                     "competencyScores": competency_totals,
                     "technicalKeywords": technical_keywords_by_category
                 }
+                logger.info(f"✅ 점수 결과 구성 완료: {len(competency_totals)}개 역량, {len(technical_keywords_by_category)}개 카테고리")
             else:
                 score_result = None
             
             # OpenAI 분석 결과 처리
             if isinstance(analyze_spring_response, Exception):
-                logger.error(f"OpenAI 분석 API 호출 실패: {analyze_spring_response}")
                 analyze_result = None
             elif analyze_spring_response.status_code == 200:
                 analyze_result = analyze_spring_response.json()
@@ -128,6 +139,8 @@ async def process_resume(
                 analyze_result = None
 
 
+        logger.info(f"✅ 이력서 분석 완료: resumeId={resume_id}")
+        
         return {
             "resume_id": resume_id,
             "file_url": file_url,
