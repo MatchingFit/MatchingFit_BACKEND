@@ -142,10 +142,6 @@ async def process_resume(
         logger.info(f"✅ 이력서 분석 완료: resumeId={resume_id}")
         
         return {
-            "resume_id": resume_id,
-            "file_url": file_url,
-            "text_s3_url": text_url,
-            "preview_text": preview,
             "job_field": job_field,
             "score_result": score_result or "분석 결과 없음",
             "ai_analysis": analyze_result or "AI 분석 결과 없음"
