@@ -30,6 +30,7 @@ public class KeywordScore {
     @JoinColumn(name = "competency_id")
     private Competency competency;
 
+    @Column(name = "score", nullable = false)
     private Double score;
 
 }
