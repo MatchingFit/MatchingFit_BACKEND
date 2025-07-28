@@ -13,7 +13,6 @@ build/
 .settings
 .springBeans
 .sts4-cache
-.env
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
@@ -36,13 +35,3 @@ out/
 
 ### VS Code ###
 .vscode/
-
-### infra ###
-infra/postgres/db/
-infra/elasticsearch/data
-infra/.env
-
-##redis###
-infra/redis
-
-.github
