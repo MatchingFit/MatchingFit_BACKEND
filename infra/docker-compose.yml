@@ -1,0 +1,129 @@
+services:
+  backend:
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    container_name: MatchingFit-Backend
+    ports:
+      - "${BACKEND_EXTERNAL_PORT}:${BACKEND_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  matchingpit-analyzer:
+    build:
+      context: ./python
+      dockerfile: dockerfile_python
+      args:
+        HUGGING_FACE_TOKEN: ${HUGGING_FACE_TOKEN}
+    container_name: MatchingFit-Analyzer
+    ports:
+      - "${ANALYZER_EXTERNAL_PORT}:${ANALYZER_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - elasticsearch
+
+  frontend:
+    build:
+      context: ../../MatchingFit_FRONTEND
+      dockerfile: dockerfile_frontend
+    container_name: MatchingFit-Frontend
+    ports:
+      - "${FRONTEND_EXTERNAL_PORT}:${FRONTEND_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:alpine
+    container_name: MatchingFit-Nginx
+    ports:
+      - "${NGINX_HTTP_PORT}:80"
+      - "${NGINX_HTTPS_PORT}:443"
+    volumes:
+      - ./nginx_config/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - MatchingFit_network
+    depends_on:
+      - backend
+      - frontend
+
+  postgres:
+    build:
+      context: ./postgres
+      dockerfile: dockerfile_postgres
+    container_name: MatchingFit-Postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_EXTERNAL_PORT}:${POSTGRES_INTERNAL_PORT}"
+    volumes:
+      - ./postgres/db:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - MatchingFit_network
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+  redis:
+    image: redis:7
+    container_name: MatchingFit_Redis
+    ports:
+      - "6379:6379"
+    networks:
+      - MatchingFit_network
+    volumes:
+      - ./redis/data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
+    container_name: MatchingFit-Elasticsearch
+    environment:
+      - discovery.type=${NODE_TYPE}
+      - ES_JAVA_OPTS=${ES_OPTS}
+      - xpack.security.enabled=${SECURITY_CONFIG}
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+      - "${ES_EXTERNAL_PORT}:${ES_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: kibana:8.12.2
+    container_name: MatchingFit-Kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - "${KIBANA_EXTERNAL_PORT}:${KIBANA_INTERNAL_PORT}"
+    networks:
+      - MatchingFit_network
+    environment:
+      ELASTICSEARCH_HOSTS: "http://${ES_HOST}:${ES_EXTERNAL_PORT}"
+    env_file:
+      - .env
+
+networks:
+  MatchingFit_network:
+    driver: bridge
