@@ -7,10 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.JdbcTypeCode;
 import jakarta.persistence.*;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.type.SqlTypes;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,31 +25,22 @@ public class Resume {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "file_url")
     private String fileUrl; //파일 url
 
-    @Column(name = "text_s3_url")
-    private String textS3Url; //텍스트 추출 파일
-
-    @Lob
-    @Column(columnDefinition = "TEXT")
-    private String previewText; //텍스트 요약 제목
-
-    @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
-    @Column(columnDefinition = "vector(768)")
-    private double[] embedding;
-
     @Column(name = "job_field", length = 50)
     private String jobField;
 
-//    @Column(name = "analysis_status", length = 20)
-//    private String analysisStatus = "pending";
-//
-//    @Column(name = "retry_count")
-//    private Integer retryCount = 0;
+    @Column(columnDefinition = "TEXT", name = "preview_text")
+    private String previewText; //텍스트 요약 제목
 
+    @Column(name = "text_s3_url")
+    private String textS3Url; //텍스트 추출 파일
+
+    @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 

@@ -26,6 +26,7 @@ public class CompetencyScore {
     @JoinColumn(name = "competency_id")
     private Competency competency;
 
+    @Column(name = "total_score", nullable = false)
     private Double totalScore;
 
 }

@@ -21,6 +21,7 @@ public class Keyword {
 
     private String keyword; //키워드명
 
+    @Column(name = "weight_score")
     private Double weightScore; //가중치
 
     //카테고리 필드 추가(기술전문성에서 사용)
@@ -32,10 +33,6 @@ public class Keyword {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competency_id")
     private Competency competency; //소속역량
-
-    @JdbcTypeCode(SqlTypes.VECTOR_FLOAT64)
-    @Column(columnDefinition = "vector(768)")
-    private Double[] embedding;            // 임베딩 벡터
 
     @OneToMany(mappedBy = "keyword", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
