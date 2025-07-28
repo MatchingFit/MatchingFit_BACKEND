@@ -1,30 +1,28 @@
 package com.example.matching_fit.domain.score.service;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.Script;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
-import co.elastic.clients.elasticsearch._types.Script;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
 import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
 import com.example.matching_fit.domain.score.dto.KeywordScoreDTO;
-import com.example.matching_fit.domain.score.entity.Competency;
-import com.example.matching_fit.domain.score.entity.CompetencyScore;
-import com.example.matching_fit.domain.score.entity.Keyword;
-import com.example.matching_fit.domain.score.entity.KeywordScore;
-import com.example.matching_fit.domain.score.repository.CompetencyRepository;
-import com.example.matching_fit.domain.score.repository.CompetencyScoreRepository;
-import com.example.matching_fit.domain.score.repository.KeywordRepository;
-import com.example.matching_fit.domain.score.repository.KeywordScoreRepository;
+import com.example.matching_fit.domain.score.dto.CompetencyScoreDTO;
+import com.example.matching_fit.domain.score.entity.*;
+import com.example.matching_fit.domain.score.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ElasticsearchService {
     private final ElasticsearchClient elasticsearchClient;
     private final ResumeRepository resumeRepository;
@@ -33,17 +31,21 @@ public class ElasticsearchService {
     private final CompetencyScoreRepository competencyScoreRepository;
     private final CompetencyRepository competencyRepository;
 
-    public List<KeywordScoreDTO> getAllCosineScoreDTOs(Long resumeId) {
-        Resume resume = resumeRepository.findById(resumeId)
-                .orElseThrow(()-> new IllegalArgumentException("이력서 없음"));
-        Double[] resumeArr = resume.getEmbedding();
-        if (resumeArr == null) return Collections.emptyList();
-        List<Float> resumeFloatList = Arrays.stream(resumeArr)
-                .map(Double::floatValue)
-                .toList();
+    @Transactional
+    public List<CompetencyScoreDTO> getAllCosineScoreDTOs(Long resumeId, List<Double> resumeEmbedding) {
+        log.info("🔍 [START] 이력서 점수 계산 시작: resumeId = {}", resumeId);
+
+        Optional<Resume> optionalResume = resumeRepository.findById(resumeId);
+
+        Resume resume = optionalResume.orElseThrow(() -> new IllegalArgumentException("이력서 없음"));
+
+        if (resumeEmbedding == null || resumeEmbedding.isEmpty()) {
+            log.warn("❗ 임베딩 데이터 없음: resumeId = {}", resumeId);
+            return Collections.emptyList();
+        }
 
         Map<String, JsonData> params = new HashMap<>();
-        params.put("query_vector", JsonData.of(resumeFloatList));
+        params.put("query_vector", JsonData.of(resumeEmbedding));
 
         Script script = Script.of(s -> s
                 .inline(i -> i
@@ -52,15 +54,16 @@ public class ElasticsearchService {
                 )
         );
 
-        //엘라스틱 서치 최대한번만 돌리기(만번)
         int MAX_RESULTS = 10000;
-        List<KeywordScore> ksEntities = new ArrayList<>(); // 저장할 엔티티 컬렉션
-        List<KeywordScoreDTO> ksdtoList = new ArrayList<>(); // DTO리스트
-        Map<String, Double> competencyScoreMap = new HashMap<>(); //역량 점수 저장하는 맵
+        List<KeywordScore> ksEntities = new ArrayList<>();
+        Map<String, List<KeywordScoreDTO>> competencyKeywordMap = new HashMap<>();
+        Map<String, Double> competencyScoreMap = new HashMap<>();
 
         try {
+            log.info("📡 Elasticsearch 스크립트 쿼리 실행 준비...");
+
             SearchRequest searchRequest = SearchRequest.of(b -> b
-                    .index("your_index_name") //사용할 인덱스명 넣기
+                    .index("keywords")
                     .query(q -> q
                             .scriptScore(ss -> ss
                                     .query(q2 -> q2.matchAll(ma -> ma))
@@ -69,82 +72,95 @@ public class ElasticsearchService {
                     )
                     .size(MAX_RESULTS)
                     .sort(s -> s.score(sc -> sc.order(SortOrder.Desc)))
-                    .sort(s -> s.field(f -> f.field("your_id_field").order(SortOrder.Asc))) // 엘라스틱서치 각 문서의 고유식별자 필드명 / 중복방지
             );
 
-            SearchResponse<Object> response =
-                    elasticsearchClient.search(searchRequest, Object.class);
-
+            SearchResponse<Object> response = elasticsearchClient.search(searchRequest, Object.class);
             List<Hit<Object>> hits = response.hits().hits();
-            if (hits != null && !hits.isEmpty()) {
-                for (Hit<Object> hit : hits) {
-                    double score = (hit.score() != null ? hit.score() - 1.0 : 0.0);
 
-                    // hit.source로 keywordId(혹은 해당 고유값) 추출
-                    String keywordId = null;
-                    if (hit.source() instanceof Map<?, ?> src) {
-                        Object idObj = src.get("your_id_field"); // 엘라스틱서치 각 문서의 고유식별자 필드명
-                        if (idObj != null) {
-                            keywordId = idObj.toString();
-                        }
-                    }
+            log.info("✅ Elasticsearch 검색 결과 수: {}", hits.size());
 
-                    if (keywordId != null) {
-                        Keyword keyword = keywordRepository.findById(Long.parseLong(keywordId)).orElse(null);
+            for (Hit<Object> hit : hits) {
+                double score = (hit.score() != null ? hit.score() - 1.0 : 0.0);
+                String keywordId = hit.id();
 
-                        if (keyword != null) {
-                            String competencyName = keyword.getCompetency().getName(); //키워드를 찾아와서 해당키워드의 역량을 가져와서
-                            double prev = competencyScoreMap.getOrDefault(competencyName, 0.0); //이전점수를 더해서 역량점수를 합침, 잇으면 점수더하고 없으면 0점으로 추가
-                            competencyScoreMap.put(competencyName, prev + score); //역량, 점수를 넣음
+                try {
+                    Long id = Long.parseLong(keywordId);
+                    keywordRepository.findByIdWithCompetency(id).ifPresent(keyword -> {
+                        log.debug("➡️ 유효한 키워드 ID: {}, 키워드명: {}", id, keyword.getKeyword());
 
-                            KeywordScore keywordScore = KeywordScore.builder()
-                                    .resume(resume)
-                                    .competency(keyword.getCompetency()) // 역량정보도 연결
-                                    .keyword(keyword)
-                                    .score(score)
-                                    .build();
-                            ksEntities.add(keywordScore);
+                        String competencyName = keyword.getCompetency().getName();
+                        double prev = competencyScoreMap.getOrDefault(competencyName, 0.0);
+                        competencyScoreMap.put(competencyName, prev + score);
 
-                            ksdtoList.add(KeywordScoreDTO.builder()
-                                    .keywordName(keyword.getKeyword())
-                                    .score(score)
-                                    .category(keyword.getCategory())
-                                    .userId(resume.getUser().getId())
-                                    .userName(resume.getUser().getName())
-                                    .build()
-                            );
-                        }
-                    }
-                }
-                // DB 저장(한 번에 일괄 저장)
-                if (!ksEntities.isEmpty()) {
-                    keywordScoreRepository.saveAll(ksEntities);
-                }
-                //역량별 점수 DB저장
-                List<CompetencyScore> csEntities = new ArrayList<>();
-                for (Map.Entry<String, Double> entry : competencyScoreMap.entrySet()){
-                    String competencyName = entry.getKey();
-                    Double totalScore = entry.getValue();
+                        ksEntities.add(KeywordScore.builder()
+                                .resume(resume)
+                                .competency(keyword.getCompetency())
+                                .keyword(keyword)
+                                .score(score)
+                                .build());
 
-                    //역량 엔티티 조회
-                    Competency competency = competencyRepository.findByName(competencyName)
-                            .orElseThrow(()-> new IllegalArgumentException("역량 없음" + competencyName));
+                        KeywordScoreDTO keywordScoreDTO = KeywordScoreDTO.builder()
+                                .keywordName(keyword.getKeyword())
+                                .score(score)
+                                .category(keyword.getCategory())
+                                .build();
 
-                    csEntities.add(CompetencyScore.builder()
-                            .resume(resume)
-                            .competency(competency)
-                            .totalScore(totalScore)
-                            .build()
-                    );
-                    // DB 저장(한 번에 일괄 저장)
-                    if (!csEntities.isEmpty()) {
-                        competencyScoreRepository.saveAll(csEntities);
-                    }
+                        // 역량별 키워드 점수 맵에 추가
+                        competencyKeywordMap.computeIfAbsent(competencyName, k -> new ArrayList<>()).add(keywordScoreDTO);
+                    });
+                } catch (NumberFormatException e) {
+                    log.warn("⚠️ keywordId '{}'는 숫자가 아닙니다. 무시합니다.", keywordId);
                 }
             }
+
+            if (!ksEntities.isEmpty()) {
+                log.info("💾 키워드 점수 저장 개수: {}", ksEntities.size());
+
+                keywordScoreRepository.saveAll(ksEntities);
+            }
+
+            List<CompetencyScore> csEntities = new ArrayList<>();
+            for (Map.Entry<String, Double> entry : competencyScoreMap.entrySet()) {
+                String competencyName = entry.getKey();
+                Double totalScore = entry.getValue();
+
+                Competency competency = competencyRepository.findByName(competencyName)
+                        .orElseThrow(() -> new IllegalArgumentException("역량 없음: " + competencyName));
+
+                log.debug("🧠 역량: {}, 총점: {}", competencyName, totalScore);
+
+                csEntities.add(CompetencyScore.builder()
+                        .resume(resume)
+                        .competency(competency)
+                        .totalScore(totalScore)
+                        .build());
+            }
+
+            if (!csEntities.isEmpty()) {
+                log.info("💾 역량 점수 저장 개수: {}", csEntities.size());
+
+                competencyScoreRepository.saveAll(csEntities);
+            }
+
         } catch (Exception e) {
             throw new IllegalArgumentException("Elasticsearch 유사도 연산/점수 저장 실패", e);
         }
-        return ksdtoList;
+
+        // CompetencyScoreDTO 리스트 생성
+        List<CompetencyScoreDTO> competencyScoreDTOs = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : competencyScoreMap.entrySet()) {
+            String competencyName = entry.getKey();
+            Double totalScore = entry.getValue();
+            List<KeywordScoreDTO> keywordScores = competencyKeywordMap.getOrDefault(competencyName, new ArrayList<>());
+
+            competencyScoreDTOs.add(CompetencyScoreDTO.builder()
+                    .competencyName(competencyName)
+                    .totalScore(totalScore)
+                    .keywordScoreDTOS(keywordScores)
+                    .build());
+        }
+
+        log.info("✅ [DONE] 이력서 점수 계산 완료: resumeId = {}", resumeId);
+        return competencyScoreDTOs;
     }
 }

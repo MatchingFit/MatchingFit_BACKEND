@@ -4,8 +4,11 @@ import com.example.matching_fit.domain.score.entity.Category;
 import com.example.matching_fit.domain.score.entity.Competency;
 import com.example.matching_fit.domain.score.entity.Keyword;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface KeywordRepository extends JpaRepository<Keyword, Long> {
     //역량에 해당하는 키워드들 가져오기(역량에 어떤 키워드들이 있는지 보여주는 용도)
@@ -13,4 +16,8 @@ public interface KeywordRepository extends JpaRepository<Keyword, Long> {
 
     //카테고리에 해당하는 키워드 가져오기
     List<Keyword> findByCategory(Category category);
+
+    // Competency 정보를 미리 로드하는 쿼리
+    @Query("SELECT k FROM Keyword k JOIN FETCH k.competency WHERE k.id = :id")
+    Optional<Keyword> findByIdWithCompetency(@Param("id") Long id);
 }
