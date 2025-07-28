@@ -91,7 +91,7 @@ public class UserController {
                     .build();
 
             // 6. 응답에 accessToken + role 포함
-            LoginResponseDto responseDto = new LoginResponseDto(accessToken, user.getName(),user.getRole().name());
+            LoginResponseDto responseDto = new LoginResponseDto(user.getName(),user.getRole().name());
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
@@ -153,6 +153,7 @@ public class UserController {
                 .kakaoId(user.getKakaoId())
                 .loginType(user.getLoginType())
                 .createdAt(user.getCreatedAt())
+                .role(user.getRole().name())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));
