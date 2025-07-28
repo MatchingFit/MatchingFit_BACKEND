@@ -90,10 +90,12 @@ public class UserController {
                     .sameSite("Strict")
                     .build();
 
-            // 6. 성공 응답
+            // 6. 응답에 accessToken + role 포함
+            LoginResponseDto responseDto = new LoginResponseDto(user.getName(),user.getRole().name());
+
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                    .body(ApiResponse.success(accessToken, "로그인 성공!"));
+                    .body(ApiResponse.success(responseDto, "로그인 성공!"));
 
         } catch (RuntimeException ex) {
             String msg = ex.getMessage();
@@ -103,7 +105,6 @@ public class UserController {
                         .body(ApiResponse.fail(msg));
             }
 
-            // 그 외 예외는 500
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.fail(msg));
         }
@@ -152,6 +153,7 @@ public class UserController {
                 .kakaoId(user.getKakaoId())
                 .loginType(user.getLoginType())
                 .createdAt(user.getCreatedAt())
+                .role(user.getRole().name())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));

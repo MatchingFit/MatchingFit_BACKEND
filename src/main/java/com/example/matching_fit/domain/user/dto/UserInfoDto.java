@@ -1,6 +1,7 @@
 package com.example.matching_fit.domain.user.dto;
 
 import com.example.matching_fit.domain.user.enums.LoginType;
+import com.example.matching_fit.domain.user.enums.Role;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -14,5 +15,6 @@ public class UserInfoDto {
     private String kakaoId;
     private LoginType loginType;
     private LocalDateTime createdAt;
+    private String role;
 
 }
