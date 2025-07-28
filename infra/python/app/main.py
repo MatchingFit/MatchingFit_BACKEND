@@ -24,6 +24,7 @@ app.add_middleware(
 
 @app.post("/initialize_keywords")
 def initialize_keywords():
+    delete_keyword_index_if_exists()
     create_keyword_index_if_needed()
     index_keywords_batch()
     return {"status": "success"}
