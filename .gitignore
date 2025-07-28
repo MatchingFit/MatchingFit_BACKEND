@@ -46,3 +46,7 @@ infra/.env
 infra/redis
 
 .github
+
+infra/redis/data/
+
+
