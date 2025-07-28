@@ -1,5 +1,7 @@
 package com.example.matching_fit.domain.score.entity;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Category {
     BACKEND("백엔드"),
     FRONTEND("프론트엔드"),
@@ -16,6 +18,7 @@ public enum Category {
     Category(String label) {
         this.label = label;
     }
+    @JsonValue
     public String getLabel() {
         return label;
     }
