@@ -38,4 +38,8 @@ public class Keyword {
     @Builder.Default
     private List<KeywordScore> keywordScores = new ArrayList<>();
 
+    // 키워드명 업데이트 메서드
+    public void updateKeyword(String newKeyword) {
+        this.keyword = newKeyword;
+    }
 }

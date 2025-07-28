@@ -33,17 +33,14 @@ public class KeywordInitService {
     public void initializeAllKeywords() {
         log.info("💡 역량 및 키워드 전체 초기화를 시작합니다.");
 
-        // 1. 모든 키워드 삭제
-        List<Keyword> allKeywords = keywordRepository.findAll();
-        if (!allKeywords.isEmpty()) {
-            keywordRepository.deleteAll(allKeywords);
-            log.info("🗑️ 기존 키워드 {}개 삭제", allKeywords.size());
-        }
+        // 1. 기존 키워드 개수 확인 (삭제하지 않음)
+        List<Keyword> existingKeywords = keywordRepository.findAll();
+        log.info("📊 기존 키워드 {}개 유지", existingKeywords.size());
 
-        // 2. 역량 + 역량별 키워드 등록
+        // 2. 역량 + 역량별 키워드 등록 (중복 체크)
         initializeCompetenciesAndKeywords();
 
-        // 3. 기술 키워드 등록 (Category 기반)
+        // 3. 기술 키워드 등록 (Category 기반, 중복 체크)
         initializeTechnicalKeywords();
 
         // 4. 벡터 임베딩 서버 호출
@@ -77,12 +74,21 @@ public class KeywordInitService {
                 String keyword = keywordEntry.getKey();
                 Double weight = keywordEntry.getValue();
 
-                keywordRepository.save(Keyword.builder()
-                        .keyword(keyword)
-                        .competency(competency)
-                        .weightScore(weight)
-                        .build());
-                log.info("✔ [{}] 역량 키워드 '{}' 삽입 (가중치: {})", competencyName, keyword, weight);
+                // 중복 체크 - 해당 역량의 키워드 목록에서 확인
+                List<Keyword> existingKeywords = keywordRepository.findByCompetency(competency);
+                boolean exists = existingKeywords.stream()
+                        .anyMatch(k -> k.getKeyword().equals(keyword));
+                
+                if (!exists) {
+                    keywordRepository.save(Keyword.builder()
+                            .keyword(keyword)
+                            .competency(competency)
+                            .weightScore(weight)
+                            .build());
+                    log.info("✔ [{}] 역량 키워드 '{}' 삽입 (가중치: {})", competencyName, keyword, weight);
+                } else {
+                    log.info("⏭️ [{}] 역량 키워드 '{}' 이미 존재 (건너뜀)", competencyName, keyword);
+                }
             }
         }
 
@@ -114,13 +120,22 @@ public class KeywordInitService {
                 String keyword = keywordEntry.getKey();
                 Double weight = keywordEntry.getValue();
 
-                keywordRepository.save(Keyword.builder()
-                        .keyword(keyword)
-                        .category(category)
-                        .competency(technicalCompetency)  // 기술 전문성 역량으로 연결
-                        .weightScore(weight)
-                        .build());
-                log.info("✔ [{}] 기술 키워드 '{}' 삽입 (가중치: {})", category.getLabel(), keyword, weight);
+                // 중복 체크 - 해당 카테고리의 키워드 목록에서 확인
+                List<Keyword> existingKeywords = keywordRepository.findByCategory(category);
+                boolean exists = existingKeywords.stream()
+                        .anyMatch(k -> k.getKeyword().equals(keyword));
+                
+                if (!exists) {
+                    keywordRepository.save(Keyword.builder()
+                            .keyword(keyword)
+                            .category(category)
+                            .competency(technicalCompetency)  // 기술 전문성 역량으로 연결
+                            .weightScore(weight)
+                            .build());
+                    log.info("✔ [{}] 기술 키워드 '{}' 삽입 (가중치: {})", category.getLabel(), keyword, weight);
+                } else {
+                    log.info("⏭️ [{}] 기술 키워드 '{}' 이미 존재 (건너뜀)", category.getLabel(), keyword);
+                }
             }
         }
 
