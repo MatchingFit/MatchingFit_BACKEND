@@ -1,5 +1,5 @@
 package com.example.matching_fit.domain.user.service;
-
+import com.example.matching_fit.domain.user.dto.ManagerJoinRequestDto;
 import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
@@ -93,9 +93,49 @@ public class UserService {
                 .name(name)
                 .loginType(loginType)
                 .refreshToken(UUID.randomUUID().toString())
+                .role(Role.USER)
                 .build();
 
         return userRepository.save(user);
+    }
+
+    @Transactional
+    public User managerJoin(ManagerJoinRequestDto managerJoinRequestDto, LoginType loginType) {
+        String email = managerJoinRequestDto.getEmail();
+        String password = managerJoinRequestDto.getPassword();
+        String passwordConfirm = managerJoinRequestDto.getPasswordConfirm();
+        String name = managerJoinRequestDto.getName();
+        String companyName = managerJoinRequestDto.getCompanyName();
+
+        validateEmailDuplicate(email);
+
+        if (!isValidPassword(password)) {
+            throw new IllegalArgumentException("비밀번호는 영문과 숫자를 조합해 10자리 이상이어야 합니다.");
+        }
+
+        if (StringUtils.hasText(password) && !password.equals(passwordConfirm)) {
+            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        }
+
+        if (StringUtils.hasText(password)) {
+            password = passwordEncoder.encode(password);
+        }
+
+        User user = User.builder()
+                .email(email)
+                .password(password)
+                .name(name)
+                .loginType(loginType)
+                .companyName(companyName)
+                .refreshToken(UUID.randomUUID().toString())
+                .role(Role.COMPANY)
+                .build();
+
+        // 먼저 user 저장
+        User savedUser = userRepository.save(user);
+
+
+        return savedUser;
     }
 
     @Transactional
