@@ -8,6 +8,15 @@ es = Elasticsearch([
 ])
 KEYWORD_INDEX = "keywords"
 
+def delete_keyword_index_if_exists():
+    if es.indices.exists(index=KEYWORD_INDEX):
+        try:
+            es.indices.delete(index=KEYWORD_INDEX)
+            print(f"🗑️ 기존 인덱스 '{KEYWORD_INDEX}' 삭제 완료")
+        except Exception as e:
+            print(f"❌ 인덱스 삭제 중 에러 발생: {e}")
+            raise
+
 def create_keyword_index_if_needed():
     try:
         info = es.info()
