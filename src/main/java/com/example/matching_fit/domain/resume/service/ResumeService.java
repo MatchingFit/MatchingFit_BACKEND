@@ -22,7 +22,6 @@ import java.util.concurrent.Executors;
 @Service
 @Slf4j
 public class ResumeService {
-
     private final ResumeRepository resumeRepository;
     private final String openAiApiKey;
     private final RestTemplate restTemplate;
@@ -138,7 +137,7 @@ public class ResumeService {
         String finalSummaryPrompt =
                 "다음은 이력서를 여러 부분으로 나누어 분석한 후 각각 요약한 내용입니다.\n\n" +
                         "이 내용들을 기반으로 아래 형식과 기준에 따라 **자세하고 구체적으로** 이력서를 한국어로 분석해줘. \n" +
-                        "각 항목은 반드시 항목 제목을 포함하고, **문장 형태로 풍부하게 설명**해줘.\n\n" +
+                        "각 항목은 반드시 항목 제목을 포함하고, **문장 형태로 풍부하게 설명**해줘. 그리고 ** 이라던지 # 이라던지 불필요한 특수문자 없이 적어줘.\n\n" +
                         "📌 분석 기준:\n" +
                         "1. 핵심 강점 (3가지 이상, 문장으로 설명)\n" +
                         "2. 보완할 점 또는 약점 (2~3가지, 근거 포함)\n" +
