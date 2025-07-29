@@ -9,12 +9,17 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface ManagerCompetencyScoreRepository extends JpaRepository<ManagerCompetencyScore, Long> {
-    @Query("""
-        SELECT mcs.competency.id, mcs.competency.name, mcs.competencyScore,
-               RANK() OVER (ORDER BY mcs.competencyScore DESC) AS rank
-        FROM ManagerCompetencyScore mcs
-        WHERE mcs.manager.id = :managerId
-        """)
+    @Query(value = """
+    SELECT t.competency_id, c.name, t.max_score,
+           RANK() OVER (ORDER BY t.max_score DESC) AS rank
+    FROM (
+        SELECT mcs.competency_id, MAX(mcs.competency_score) AS max_score
+        FROM manager_competency_score mcs
+        WHERE mcs.manager_id = :managerId
+        GROUP BY mcs.competency_id
+    ) t
+    JOIN competency c ON t.competency_id = c.id
+    """, nativeQuery = true)
     List<Object[]> findAllCompetencyScoresWithRank(@Param("managerId") Long managerId);
 
     @Modifying
