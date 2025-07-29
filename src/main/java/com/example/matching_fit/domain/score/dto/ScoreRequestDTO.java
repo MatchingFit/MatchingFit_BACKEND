@@ -8,4 +8,5 @@ import java.util.List;
 public class ScoreRequestDTO {
     private Long resumeId;
     private List<Double> embedding;
+    private String jobField;
 }

@@ -22,6 +22,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+def health_check():
+    return JSONResponse(content={"status": "ok"}, status_code=200)
+
 @app.post("/initialize_keywords")
 def initialize_keywords():
     delete_keyword_index_if_exists()
@@ -64,7 +68,8 @@ async def process_resume(
                 SPRING_API_URL + "/api/score/total",
                 json={
                     "resumeId": resume_id,
-                    "embedding": embedding
+                    "embedding": embedding,
+                    "jobField": job_field
                 },
                 timeout=100
             )
@@ -134,10 +139,10 @@ async def process_resume(
             if isinstance(analyze_spring_response, Exception):
                 analyze_result = None
             elif analyze_spring_response.status_code == 200:
-                analyze_result = analyze_spring_response.json()
+                json_data = analyze_spring_response.json()
+                analyze_result = json_data.get("finalSummary")
             else:
                 analyze_result = None
-
 
         logger.info(f"✅ 이력서 분석 완료: resumeId={resume_id}")
         

@@ -90,3 +90,8 @@ embedding:
 
 keyword:
   yaml-path: classpath:keywords.yaml
+
+health:
+  url:
+    elastic: ${ELASTIC_HEALTH_URL}
+    analyzer: ${ANALYZER_HEALTH_URL}

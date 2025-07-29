@@ -11,6 +11,7 @@ import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
 import com.example.matching_fit.domain.score.dto.KeywordScoreDTO;
 import com.example.matching_fit.domain.score.dto.CompetencyScoreDTO;
+import com.example.matching_fit.domain.score.dto.ScoreRequestDTO;
 import com.example.matching_fit.domain.score.entity.*;
 import com.example.matching_fit.domain.score.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,11 @@ public class ElasticsearchService {
     private final CompetencyRepository competencyRepository;
 
     @Transactional
-    public List<CompetencyScoreDTO> getAllCosineScoreDTOs(Long resumeId, List<Double> resumeEmbedding) {
+    public List<CompetencyScoreDTO> getAllCosineScoreDTOs(ScoreRequestDTO scoreRequestDTO) {
+        Long resumeId = scoreRequestDTO.getResumeId();
+        List<Double> resumeEmbedding = scoreRequestDTO.getEmbedding();
+        String jobField = scoreRequestDTO.getJobField();
+
         log.info("🔍 [START] 이력서 점수 계산 시작: resumeId = {}", resumeId);
 
         Optional<Resume> optionalResume = resumeRepository.findById(resumeId);

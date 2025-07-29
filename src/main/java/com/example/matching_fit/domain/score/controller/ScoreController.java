@@ -21,7 +21,7 @@ public class ScoreController {
 
     @PostMapping("/total")
     public ResponseEntity<List<CompetencyScoreDTO>> getScore(@RequestBody ScoreRequestDTO scoreRequestDTO) {
-        List<CompetencyScoreDTO> competencyScoreDTO =  elasticsearchService.getAllCosineScoreDTOs(scoreRequestDTO.getResumeId(), scoreRequestDTO.getEmbedding());
+        List<CompetencyScoreDTO> competencyScoreDTO =  elasticsearchService.getAllCosineScoreDTOs(scoreRequestDTO);
         return ResponseEntity.ok(competencyScoreDTO);
     }
 
