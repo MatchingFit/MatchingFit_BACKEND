@@ -1,9 +1,8 @@
-package com.example.matching_fit.global.config.app;
+package com.example.matching_fit.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.function.client.WebClient;
-
 
 @Configuration
 public class WebClientConfig {
