@@ -31,8 +31,6 @@ public class KeywordInitService {
 
     @Transactional
     public void initializeAllKeywords() {
-        log.info("💡 역량 및 키워드 전체 초기화를 시작합니다.");
-
         // 1. 기존 키워드 개수 확인 (삭제하지 않음)
         List<Keyword> existingKeywords = keywordRepository.findAll();
         log.info("📊 기존 키워드 {}개 유지", existingKeywords.size());
@@ -129,7 +127,7 @@ public class KeywordInitService {
                     keywordRepository.save(Keyword.builder()
                             .keyword(keyword)
                             .category(category)
-                            .competency(technicalCompetency)  // 기술 전문성 역량으로 연결
+                            .competency(technicalCompetency)
                             .weightScore(weight)
                             .build());
                     log.info("✔ [{}] 기술 키워드 '{}' 삽입 (가중치: {})", category.getLabel(), keyword, weight);
