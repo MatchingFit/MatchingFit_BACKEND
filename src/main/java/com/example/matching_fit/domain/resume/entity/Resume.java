@@ -35,10 +35,13 @@ public class Resume {
     private String jobField;
 
     @Column(columnDefinition = "TEXT", name = "preview_text")
-    private String previewText; //텍스트 요약 제목
+    private String previewText; //텍스트 요약
 
     @Column(name = "text_s3_url")
     private String textS3Url; //텍스트 추출 파일
+
+    @Column(name = "pdf_url")
+    private String pdfUrl;
 
     @CreatedDate
     @Column(name = "created_at", updatable = false)
@@ -59,4 +62,8 @@ public class Resume {
     @OneToMany(mappedBy = "resume", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<KeywordScore> keywordScores = new ArrayList<>();
+
+    public void updatePdfUrl(String pdfUrl) {
+        this.pdfUrl = pdfUrl;
+    }
 }
