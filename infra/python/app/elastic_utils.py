@@ -5,7 +5,11 @@ from app.db_utils import get_all_keywords_for_embedding, SessionLocal
 
 es = Elasticsearch([
     {"host": ELASTIC_HOST, "port": int(ELASTIC_PORT), "scheme": "http"}
-])
+    ],
+    timeout=30,                # 요청 단위 타임아웃 (기본값 10초 → 30초로 증가)
+    max_retries=5,             # 최대 재시도 횟수 (기본: 3)
+    retry_on_timeout=True      # 타임아웃 시 재시도할지 여부
+)
 KEYWORD_INDEX = "keywords"
 
 def delete_keyword_index_if_exists():

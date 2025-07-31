@@ -38,6 +38,9 @@ public class ElasticsearchService {
         List<Double> resumeEmbedding = scoreRequestDTO.getEmbedding();
         String jobField = scoreRequestDTO.getJobField();
 
+        //입력된 jobField 값 로그 찍기 (입력값 확인)
+        log.info("▶▶▶ 입력된 jobField(선택 카테고리): '{}'", jobField);
+
         log.info("🔍 [START] 이력서 점수 계산 시작: resumeId = {}", resumeId);
 
         Optional<Resume> optionalResume = resumeRepository.findById(resumeId);
@@ -63,6 +66,9 @@ public class ElasticsearchService {
         List<KeywordScore> ksEntities = new ArrayList<>();
         Map<String, List<KeywordScoreDTO>> competencyKeywordMap = new HashMap<>();
         Map<String, Double> competencyScoreMap = new HashMap<>();
+        //추가
+        //jobField를 소문자로 변환해 일관성 있는 비교(일관성있는 처리를 위해)
+        String choiceCategory = (jobField != null) ? jobField.trim().replaceAll("\\s+", "").toLowerCase() : null;
 
         try {
             log.info("📡 Elasticsearch 스크립트 쿼리 실행 준비...");
@@ -94,24 +100,34 @@ public class ElasticsearchService {
                         log.debug("➡️ 유효한 키워드 ID: {}, 키워드명: {}", id, keyword.getKeyword());
 
                         String competencyName = keyword.getCompetency().getName();
-                        double prev = competencyScoreMap.getOrDefault(competencyName, 0.0);
-                        competencyScoreMap.put(competencyName, prev + score);
+                        //추가
+                        String categoryLabel = (keyword.getCategory() != null)
+                                ? keyword.getCategory().getLabel().trim().replaceAll("\\s+", "").toLowerCase()
+                                : null;
+                        log.info(">>> 비교 로그 위치 도달: keywordId={}, resumeId={}", id, resumeId);
+                        log.debug(">>> 비교 중: 선택한 카테고리='{}', 키워드 카테고리='{}', 역량 이름='{}'",
+                                choiceCategory, categoryLabel, competencyName);
+                        log.debug(">> 필터 조건 검사: 역량='{}', 입력카테고리='{}', 키워드카테고리='{}'",
+                                competencyName, choiceCategory, categoryLabel);
 
-                        ksEntities.add(KeywordScore.builder()
-                                .resume(resume)
-                                .competency(keyword.getCompetency())
-                                .keyword(keyword)
-                                .score(score)
-                                .build());
-
-                        KeywordScoreDTO keywordScoreDTO = KeywordScoreDTO.builder()
-                                .keywordName(keyword.getKeyword())
-                                .score(score)
-                                .category(keyword.getCategory())
-                                .build();
-
-                        // 역량별 키워드 점수 맵에 추가
-                        competencyKeywordMap.computeIfAbsent(competencyName, k -> new ArrayList<>()).add(keywordScoreDTO);
+                        if ("기술 전문성".equals(competencyName)
+                                && choiceCategory != null
+                                && !choiceCategory.isEmpty()) {
+                            if (choiceCategory.equals(categoryLabel)) {
+                                log.debug(">> 점수 누적 중: 역량='{}', 키워드='{}', 점수={}",
+                                        competencyName, keyword.getKeyword(), score);
+                                accumulateKeywordScore(score, resume, keyword, competencyName,
+                                        competencyScoreMap, ksEntities, competencyKeywordMap);
+                            } else {
+                                log.debug("❌ 카테고리 필터 불일치: 선택카테고리='{}', 키워드카테고리='{}', 역량='{}'",
+                                        choiceCategory, categoryLabel, competencyName);
+                            }
+                        } else {
+                            log.debug(">> 기술전문성 외 역량은 필터 없이 점수 누적: 역량='{}', 키워드='{}', 점수={}", competencyName, keyword.getKeyword(), score);
+                            // 기술전문성 외 다른 역량은 모두 점수 누적
+                            accumulateKeywordScore(score, resume, keyword, competencyName,
+                                    competencyScoreMap, ksEntities, competencyKeywordMap);
+                        }
                     });
                 } catch (NumberFormatException e) {
                     log.warn("⚠️ keywordId '{}'는 숫자가 아닙니다. 무시합니다.", keywordId);
@@ -167,5 +183,33 @@ public class ElasticsearchService {
 
         log.info("✅ [DONE] 이력서 점수 계산 완료: resumeId = {}", resumeId);
         return competencyScoreDTOs;
+    }
+    // 중복 코드 제거를 위한 점수 누적 및 DTO 처리 메서드
+    private void accumulateKeywordScore(double score, Resume resume, Keyword keyword, String competencyName,
+                                        Map<String, Double> competencyScoreMap, List<KeywordScore> ksEntities,
+                                        Map<String, List<KeywordScoreDTO>> competencyKeywordMap) {
+        double prev = competencyScoreMap.getOrDefault(competencyName, 0.0);
+        competencyScoreMap.put(competencyName, prev + score);
+
+        ksEntities.add(KeywordScore.builder()
+                .resume(resume)
+                .competency(keyword.getCompetency())
+                .keyword(keyword)
+                .score(score)
+                .build());
+
+        KeywordScoreDTO keywordScoreDTO = KeywordScoreDTO.builder()
+                .keywordName(keyword.getKeyword())
+                .score(score)
+                .category(categoryLabel(keyword))
+                .build();
+
+        competencyKeywordMap.computeIfAbsent(competencyName, k -> new ArrayList<>()).add(keywordScoreDTO);
+    }
+
+    private String categoryLabel(Keyword keyword) {
+        return (keyword.getCategory() != null)
+                ? keyword.getCategory().getLabel()
+                : null;
     }
 }
