@@ -14,11 +14,11 @@ public interface ManagerCompetencyScoreRepository extends JpaRepository<ManagerC
            RANK() OVER (ORDER BY t.max_score DESC) AS rank
     FROM (
         SELECT mcs.competency_id, MAX(mcs.competency_score) AS max_score
-        FROM manager_competency_score mcs
+        FROM manager_competency_scores mcs
         WHERE mcs.manager_id = :managerId
         GROUP BY mcs.competency_id
     ) t
-    JOIN competency c ON t.competency_id = c.id
+    JOIN competencies c ON t.competency_id = c.id
     """, nativeQuery = true)
     List<Object[]> findAllCompetencyScoresWithRank(@Param("managerId") Long managerId);
 
