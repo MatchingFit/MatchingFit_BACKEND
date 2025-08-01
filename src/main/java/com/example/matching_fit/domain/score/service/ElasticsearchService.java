@@ -38,9 +38,6 @@ public class ElasticsearchService {
         List<Double> resumeEmbedding = scoreRequestDTO.getEmbedding();
         String jobField = scoreRequestDTO.getJobField();
 
-        //입력된 jobField 값 로그 찍기 (입력값 확인)
-        log.info("▶▶▶ 입력된 jobField(선택 카테고리): '{}'", jobField);
-
         log.info("🔍 [START] 이력서 점수 계산 시작: resumeId = {}", resumeId);
 
         Optional<Resume> optionalResume = resumeRepository.findById(resumeId);
@@ -104,18 +101,11 @@ public class ElasticsearchService {
                         String categoryLabel = (keyword.getCategory() != null)
                                 ? keyword.getCategory().getLabel().trim().replaceAll("\\s+", "").toLowerCase()
                                 : null;
-                        log.info(">>> 비교 로그 위치 도달: keywordId={}, resumeId={}", id, resumeId);
-                        log.debug(">>> 비교 중: 선택한 카테고리='{}', 키워드 카테고리='{}', 역량 이름='{}'",
-                                choiceCategory, categoryLabel, competencyName);
-                        log.debug(">> 필터 조건 검사: 역량='{}', 입력카테고리='{}', 키워드카테고리='{}'",
-                                competencyName, choiceCategory, categoryLabel);
 
                         if ("기술 전문성".equals(competencyName)
                                 && choiceCategory != null
                                 && !choiceCategory.isEmpty()) {
                             if (choiceCategory.equals(categoryLabel)) {
-                                log.debug(">> 점수 누적 중: 역량='{}', 키워드='{}', 점수={}",
-                                        competencyName, keyword.getKeyword(), score);
                                 accumulateKeywordScore(score, resume, keyword, competencyName,
                                         competencyScoreMap, ksEntities, competencyKeywordMap);
                             } else {
@@ -123,7 +113,6 @@ public class ElasticsearchService {
                                         choiceCategory, categoryLabel, competencyName);
                             }
                         } else {
-                            log.debug(">> 기술전문성 외 역량은 필터 없이 점수 누적: 역량='{}', 키워드='{}', 점수={}", competencyName, keyword.getKeyword(), score);
                             // 기술전문성 외 다른 역량은 모두 점수 누적
                             accumulateKeywordScore(score, resume, keyword, competencyName,
                                     competencyScoreMap, ksEntities, competencyKeywordMap);
