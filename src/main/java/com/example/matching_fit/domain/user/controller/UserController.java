@@ -92,6 +92,7 @@ public class UserController {
 
             // 6. 응답에 accessToken + role 포함
             LoginResponseDto responseDto = new LoginResponseDto(user.getName(),user.getRole().name());
+            log.info("accessToken::: " + accessToken);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())

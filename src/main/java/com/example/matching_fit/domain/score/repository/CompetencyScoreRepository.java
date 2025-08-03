@@ -24,7 +24,7 @@ public interface CompetencyScoreRepository extends JpaRepository<CompetencyScore
     Optional<CompetencyScore> findByResumeIdAndCompetencyId(@Param("resumeId") Long resumeId, @Param("competencyId") Long competencyId);
 
     @Modifying
-    @Query(value = "INSERT INTO competencyscores (resume_id, competency_id, total_score) VALUES (:resumeId, :competencyId, :score)", nativeQuery = true)
+    @Query(value = "INSERT INTO CompetencyScore (resume_id, competency_id, total_score) VALUES (:resumeId, :competencyId, :score)", nativeQuery = true)
     void insertRawScore(@Param("resumeId") Long resumeId,
                         @Param("competencyId") Long competencyId,
                         @Param("score") Double score);
