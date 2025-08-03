@@ -9,5 +9,6 @@ import lombok.Getter;
 public class KeywordScoreDTO {
     private String keywordName;
     private double score;
-    private Category category;
+//    private Category category;
+    private String category;  // 한글 카테고리명
 }

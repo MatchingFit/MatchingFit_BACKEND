@@ -38,7 +38,7 @@ public class ScoreService {
                     .map(ks -> KeywordScoreDTO.builder()
                             .keywordName(ks.getKeyword().getKeyword())
                             .score(ks.getScore() != null ? ks.getScore() : 0.0)
-                            .category(ks.getKeyword().getCategory())
+                            .category(ks.getKeyword().getCategory() != null ? ks.getKeyword().getCategory().getLabel() : null)
                             .build())
                     .collect(Collectors.toList());
 
@@ -71,7 +71,7 @@ public class ScoreService {
                     .map(ks -> KeywordScoreDTO.builder()
                             .keywordName(ks.getKeyword().getKeyword())
                             .score(ks.getScore() != null ? ks.getScore() : 0.0)
-                            .category(ks.getKeyword().getCategory())
+                            .category(ks.getKeyword().getCategory() != null ? ks.getKeyword().getCategory().getLabel() : null)
                             .build())
                     .collect(Collectors.toList());
 

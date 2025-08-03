@@ -5,7 +5,7 @@ import uuid, logging, httpx, asyncio
 
 from app.extractor import extract_text
 from app.embedding import embed_resume
-from app.s3_utils import upload_to_s3, upload_text_to_s3
+from app.s3_utils import upload_to_s3, upload_text_to_s3, upload_pdf_to_s3
 from app.db_utils import save_resume_info_to_db
 from app.elastic_utils import delete_keyword_index_if_exists, create_keyword_index_if_needed, index_keywords_batch
 from app.config import SPRING_API_URL
@@ -148,6 +148,7 @@ async def process_resume(
         
         return {
             "job_field": job_field,
+            "resume_id": resume_id,
             "score_result": score_result or "분석 결과 없음",
             "ai_analysis": analyze_result or "AI 분석 결과 없음"
         }
@@ -156,3 +157,31 @@ async def process_resume(
         logger.error(f"전체 처리 실패: {e}")
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
+@app.post("/upload/pdf")
+async def upload_pdf(file: UploadFile, resume_id: int = Form(...)):
+    extension = file.filename.split(".")[-1]
+    if extension.lower() != "pdf":
+        return {"error": "PDF 파일만 업로드 가능합니다."}
+
+    filename = f"resumes/{uuid.uuid4()}.pdf"
+    content = await file.read()
+
+    # S3 업로드
+    s3_url = upload_pdf_to_s3(content, filename)
+
+    #  Spring 서버로 pdfUrl 전달
+    try:
+        async with httpx.AsyncClient() as client:
+            spring_response = await client.post(
+                f"{SPRING_API_URL}/api/resume/update/pdf",
+                json={"resumeId": resume_id, "pdfUrl": s3_url},
+                timeout=10
+            )
+
+        if spring_response.status_code != 200:
+            return JSONResponse(status_code=500, content={"error": "Spring 서버 업데이트 실패"})
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": f"Spring 통신 실패: {e}"})
+
+    return {"url": s3_url, "resume_id": resume_id}
