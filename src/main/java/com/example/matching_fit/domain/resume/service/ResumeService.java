@@ -50,7 +50,6 @@ public class ResumeService {
         long endFetch = System.currentTimeMillis();
         log.info("[⏱️ 이력서 텍스트 추출 시간] " + (endFetch - startFetch) + "ms");
 
-        // 이력서를 쪼개서 분석
         List<String> chunks = splitTextIntoChunks(text, 3000);
 
         long startAnalyze = System.currentTimeMillis();
@@ -121,14 +120,12 @@ public class ResumeService {
                 .map(CompletableFuture::join)
                 .toList();
 
-        // 요약 전체 합치기
         StringBuilder combinedSummaries = new StringBuilder();
         for (ResumeAnalysisResultDto.ChunkAnalysis c : chunkAnalyses) {
-            combinedSummaries.append("[").append(c.getPartNumber()).append("부 요약] ")
+            combinedSummaries.append("[" + c.getPartNumber() + "부 요약] ")
                     .append(c.getSummary()).append("\n");
         }
 
-        // 최종 GPT 분석 요청
         String finalSummaryPrompt =
                 "다음은 이력서를 여러 부분으로 나누어 분석한 후 각각 요약한 내용입니다.\n\n" +
                         "이 내용들을 기반으로 아래 형식과 기준에 따라 **자세하고 구체적으로** 이력서를 한국어로 분석해줘. \n" +
@@ -146,11 +143,12 @@ public class ResumeService {
         resultDto.setChunkAnalyses(chunkAnalyses);
         resultDto.setFinalSummary(finalSummary);
 
-        // ✅ 항목별로 파싱하여 리스트 저장
-        resultDto.setStrengths(extractSection(finalSummary, "1\\. 핵심 강점", "2\\. 보완할 점"));
-        resultDto.setWeaknesses(extractSection(finalSummary, "2\\. 보완할 점", "3\\. 기술 스택"));
-        resultDto.setTechStack(extractSection(finalSummary, "3\\. 기술 스택", "4\\. 추천 직무"));
-        resultDto.setRecommendedJobs(extractSection(finalSummary, "4\\. 추천 직무", null));
+        List<String> summarizedSections = new ArrayList<>();
+        summarizedSections.addAll(extractSection(finalSummary, "1\\. 핵심 강점", "2\\. 보완할 점"));
+        summarizedSections.addAll(extractSection(finalSummary, "2\\. 보완할 점", "3\\. 기술 스택"));
+        summarizedSections.addAll(extractSection(finalSummary, "3\\. 기술 스택", "4\\. 추천 직무"));
+        summarizedSections.addAll(extractSection(finalSummary, "4\\. 추천 직무", null));
+        resultDto.setSummarizedSections(summarizedSections);
 
         return resultDto;
     }
@@ -171,6 +169,8 @@ public class ResumeService {
         return Arrays.stream(section.split("[\\n\\r]+"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
+                .map(s -> s.replaceAll("^(?:[0-9]+\\.|[-*•])?\\s*(?:[가-힣a-zA-Z]+\\s*[:：])?", "")) // 불필요한 제목/접두어 제거
+                .filter(s -> !s.isBlank())
                 .toList();
     }
 
@@ -223,3 +223,5 @@ public class ResumeService {
         resume.updatePdfUrl(pdfUrl);
     }
 }
+
+
