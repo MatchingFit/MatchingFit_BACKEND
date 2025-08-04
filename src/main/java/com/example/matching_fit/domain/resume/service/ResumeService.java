@@ -169,7 +169,12 @@ public class ResumeService {
         return Arrays.stream(section.split("[\\n\\r]+"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                .map(s -> s.replaceAll("^(?:[0-9]+\\.|[-*•])?\\s*(?:[가-힣a-zA-Z]+\\s*[:：])?", "")) // 불필요한 제목/접두어 제거
+                // "또는 약점:" 혹은 "또는 포지션:"으로 시작하는 문장 제거
+                .filter(s -> !s.startsWith("또는 약점"))
+                .filter(s -> !s.startsWith("또는 포지션"))
+                .filter(s -> !s.equals(":"))
+                // 기존 접두어 제거
+                .map(s -> s.replaceAll("^(?:[0-9]+\\.|[-*•])?\\s*(?:[가-힣a-zA-Z]+\\s*[:：])?", ""))
                 .filter(s -> !s.isBlank())
                 .toList();
     }
