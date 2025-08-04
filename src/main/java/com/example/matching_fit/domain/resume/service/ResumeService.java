@@ -13,13 +13,12 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @Slf4j
@@ -65,7 +64,6 @@ public class ResumeService {
         return result;
     }
 
-
     private String fetchTextFromS3(String s3Url) {
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -82,9 +80,6 @@ public class ResumeService {
         }
     }
 
-    /**
-     * 이력서를 문단 또는 줄 단위로 나눠서 일정 길이 이하로 분할
-     */
     private List<String> splitTextIntoChunks(String text, int maxChunkLength) {
         List<String> chunks = new ArrayList<>();
         StringBuilder currentChunk = new StringBuilder();
@@ -101,11 +96,8 @@ public class ResumeService {
         return chunks;
     }
 
-    /**
-     * 분할된 이력서 조각을 순차적으로 분석하고 이어붙임
-     */
     private ResumeAnalysisResultDto analyzeTextChunksWithOpenAI(List<String> chunks) {
-        ExecutorService executor = Executors.newFixedThreadPool(4); // 병렬 처리
+        ExecutorService executor = Executors.newFixedThreadPool(4);
         List<CompletableFuture<ResumeAnalysisResultDto.ChunkAnalysis>> futures = new ArrayList<>();
 
         for (int i = 0; i < chunks.size(); i++) {
@@ -129,13 +121,14 @@ public class ResumeService {
                 .map(CompletableFuture::join)
                 .toList();
 
-        // 🔽 최종 요약 생성
+        // 요약 전체 합치기
         StringBuilder combinedSummaries = new StringBuilder();
         for (ResumeAnalysisResultDto.ChunkAnalysis c : chunkAnalyses) {
             combinedSummaries.append("[").append(c.getPartNumber()).append("부 요약] ")
                     .append(c.getSummary()).append("\n");
         }
 
+        // 최종 GPT 분석 요청
         String finalSummaryPrompt =
                 "다음은 이력서를 여러 부분으로 나누어 분석한 후 각각 요약한 내용입니다.\n\n" +
                         "이 내용들을 기반으로 아래 형식과 기준에 따라 **자세하고 구체적으로** 이력서를 한국어로 분석해줘. \n" +
@@ -152,12 +145,35 @@ public class ResumeService {
         ResumeAnalysisResultDto resultDto = new ResumeAnalysisResultDto();
         resultDto.setChunkAnalyses(chunkAnalyses);
         resultDto.setFinalSummary(finalSummary);
+
+        // ✅ 항목별로 파싱하여 리스트 저장
+        resultDto.setStrengths(extractSection(finalSummary, "1\\. 핵심 강점", "2\\. 보완할 점"));
+        resultDto.setWeaknesses(extractSection(finalSummary, "2\\. 보완할 점", "3\\. 기술 스택"));
+        resultDto.setTechStack(extractSection(finalSummary, "3\\. 기술 스택", "4\\. 추천 직무"));
+        resultDto.setRecommendedJobs(extractSection(finalSummary, "4\\. 추천 직무", null));
+
         return resultDto;
     }
 
-    /**
-     * OpenAI Chat Completion 요청
-     */
+    private List<String> extractSection(String text, String startPattern, String endPattern) {
+        String section = "";
+        try {
+            String regex = startPattern + "([\\s\\S]*?)" + (endPattern != null ? endPattern : "$");
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(text);
+            if (matcher.find()) {
+                section = matcher.group(1).trim();
+            }
+        } catch (Exception e) {
+            log.warn("분석 섹션 추출 실패: {}", startPattern, e);
+        }
+
+        return Arrays.stream(section.split("[\\n\\r]+"))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .toList();
+    }
+
     private String sendChatCompletion(String userContent) {
         String apiUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -166,7 +182,7 @@ public class ResumeService {
         headers.setBearerAuth(openAiApiKey);
 
         Map<String, Object> requestBody = Map.of(
-                "model", "gpt-3.5-turbo-1106",  // ✅ 더 빠르고 context 길이 김
+                "model", "gpt-3.5-turbo-1106",
                 "messages", List.of(
                         Map.of("role", "system", "content", "당신은 이력서 분석 도우미입니다."),
                         Map.of("role", "user", "content", userContent)
@@ -204,6 +220,6 @@ public class ResumeService {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 resumeId: " + resumeId));
 
-        resume.updatePdfUrl(pdfUrl); // 엔티티 필드만 수정
+        resume.updatePdfUrl(pdfUrl);
     }
 }
