@@ -140,7 +140,7 @@ async def process_resume(
                 analyze_result = None
             elif analyze_spring_response.status_code == 200:
                 json_data = analyze_spring_response.json()
-                analyze_result = json_data.get("finalSummary")
+                analyze_result = json_data.get("summarizedSections")
             else:
                 analyze_result = None
 
