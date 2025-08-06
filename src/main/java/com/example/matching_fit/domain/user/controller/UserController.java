@@ -163,4 +163,14 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));
     }
 
+    @PutMapping("/edit")
+    public ResponseEntity<ApiResponse<?>> updateUserInfo(
+            @RequestBody UserUpdateRequest request
+    ) {
+        userService.updateUserInfo(rq.getActor().getId(), request);
+        return ResponseEntity.ok(ApiResponse.success(request, "회원 정보 수정 성공!"));
+    }
+
+
+
 }
