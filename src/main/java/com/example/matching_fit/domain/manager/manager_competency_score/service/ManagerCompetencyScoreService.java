@@ -142,9 +142,13 @@ public class ManagerCompetencyScoreService {
                 .map(dto -> {
                     User user = userRepository.findById(dto.getUserId())
                             .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                    Resume resume = resumeRepository.findById(dto.getResumeId())
+                            .orElseThrow(() -> new EntityNotFoundException("Resume not found"));
+
                     return ResumeMatchingResult.builder()
                             .manager(manager)
                             .user(user)
+                            .resume(resume)  // 👈 resume 설정
                             .build();
                 })
                 .toList();

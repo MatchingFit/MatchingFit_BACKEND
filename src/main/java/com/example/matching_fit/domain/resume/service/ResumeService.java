@@ -1,6 +1,8 @@
 package com.example.matching_fit.domain.resume.service;
 
+import com.example.matching_fit.domain.manager.resume_matching_result.repository.ResumeMatchingResultRepository;
 import com.example.matching_fit.domain.resume.dto.ResumeAnalysisResultDto;
+import com.example.matching_fit.domain.resume.dto.ResumeSummaryDto;
 import com.example.matching_fit.domain.resume.dto.ResumeTextDto;
 import com.example.matching_fit.domain.resume.entity.Resume;
 import com.example.matching_fit.domain.resume.repository.ResumeRepository;
