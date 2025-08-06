@@ -155,6 +155,9 @@ public class UserController {
                 .loginType(user.getLoginType())
                 .createdAt(user.getCreatedAt())
                 .role(user.getRole().name())
+                .jobCategory(user.getJobCategory())
+                .jobRole(user.getJobRole())
+                .career(user.getCareer())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));
