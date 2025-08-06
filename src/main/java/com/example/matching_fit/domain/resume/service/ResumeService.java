@@ -122,41 +122,70 @@ public class ResumeService {
 
         StringBuilder combinedSummaries = new StringBuilder();
         for (ResumeAnalysisResultDto.ChunkAnalysis c : chunkAnalyses) {
-            combinedSummaries.append("[" + c.getPartNumber() + "부 요약] ")
+            combinedSummaries.append("[").append(c.getPartNumber()).append("부 요약] ")
                     .append(c.getSummary()).append("\n");
         }
 
         String finalSummaryPrompt =
                 "다음은 이력서를 여러 부분으로 나누어 분석한 후 각각 요약한 내용입니다.\n\n" +
-                        "이 내용들을 기반으로 아래 형식과 기준에 따라 **자세하고 구체적으로** 이력서를 한국어로 분석해줘. \n" +
-                        "각 항목은 반드시 항목 제목을 포함하고, **문장 형태로 풍부하게 설명**해줘. 그리고 ** 이라던지 # 이라던지 불필요한 특수문자 없이 적어줘.\n\n" +
-                        "📌 분석 기준:\n" +
-                        "1. 핵심 강점 (3가지 이상, 문장으로 설명)\n" +
-                        "2. 보완할 점 또는 약점 (2~3가지, 근거 포함)\n" +
-                        "3. 기술 스택 요약 (사용한 기술과 숙련도)\n" +
-                        "4. 추천 직무 또는 포지션 (이력서 기반으로 구체적인 직무 예시 제시)\n\n" +
-                        "✍️ 요약된 분석들:\n" + combinedSummaries;
+                        "이 요약들을 바탕으로 이력서를 아래의 항목 형식에 맞추어 한국어로 분석해줘. \n" +
+                        "각 항목은 반드시 제목으로 시작하고, 제목은 아래와 정확히 일치해야 하며, 항상 이 순서로 작성해줘:\n\n" +
+                        "- 각 항목은 마크다운 형식이 아닌 '1. 핵심 강점'처럼 숫자와 점(.)으로 시작하고, 반드시 줄의 맨 앞에 위치해야 함.\n" +
+                        "- 각 제목은 반드시 정확히 '1. 핵심 강점', '2. 보완할 점 또는 약점', '3. 기술 스택 요약', '4. 추천 직무 또는 포지션' 중 하나여야 함.\n" +
 
-        String finalSummary = sendChatCompletion(finalSummaryPrompt);
+                        "1. 핵심 강점\n" +
+                        "2. 보완할 점 또는 약점\n" +
+                        "3. 기술 스택 요약\n" +
+                        "4. 추천 직무 또는 포지션\n\n" +
+
+                        "✍️ 작성 규칙:\n" +
+                        "- 각 항목 아래에 문단 단위로 서술하되, 문장 형태로 자세히 작성할 것.\n" +
+                        "- 각 항목마다 여러 문장으로 자세히 작성하고, 번호나 불릿 없이 작성할 것.\n" +
+                        "- 항목 제목은 반드시 위 형식과 정확히 일치하고, 줄바꿈하여 시작할 것.\n" +
+                        "- 특수문자 (예: *, •, #, :)는 항목 제목이나 본문에서 사용하지 말 것.\n" +
+                        "- 전체는 마치 사람 이력서를 평가 보고서처럼 자연스럽게 이어지게 작성할 것.\n\n" +
+                        "- 항목마다 '하위 항목'이나 불릿 포인트(-, *, 1.) 형식으로 작성하지 말고, 자연스러운 단락(문단) 형식으로, 한 문장으로 풀어서 설명할 것. "+
+                        "📌 참고 요약들:\n" + combinedSummaries;
+
+        String finalSummaryRaw = sendChatCompletion(finalSummaryPrompt);
+        String processedFinalSummary = convertMarkdownToNumbered(finalSummaryRaw);
 
         ResumeAnalysisResultDto resultDto = new ResumeAnalysisResultDto();
         resultDto.setChunkAnalyses(chunkAnalyses);
-        resultDto.setFinalSummary(finalSummary);
+        resultDto.setFinalSummary(processedFinalSummary);
 
-        List<String> summarizedSections = new ArrayList<>();
-        summarizedSections.addAll(extractSection(finalSummary, "1\\. 핵심 강점", "2\\. 보완할 점"));
-        summarizedSections.addAll(extractSection(finalSummary, "2\\. 보완할 점", "3\\. 기술 스택"));
-        summarizedSections.addAll(extractSection(finalSummary, "3\\. 기술 스택", "4\\. 추천 직무"));
-        summarizedSections.addAll(extractSection(finalSummary, "4\\. 추천 직무", null));
+//        List<String> summarizedSections = new ArrayList<>();
+//        summarizedSections.addAll(extractSection(processedFinalSummary, "1\\. 핵심 강점", "2\\. 보완할 점 또는 약점"));
+//        summarizedSections.addAll(extractSection(processedFinalSummary, "2\\. 보완할 점 또는 약점", "3\\. 기술 스택 요약"));
+//        summarizedSections.addAll(extractSection(processedFinalSummary, "3\\. 기술 스택 요약", "4\\. 추천 직무 또는 포지션"));
+//        summarizedSections.addAll(extractSection(processedFinalSummary, "4\\. 추천 직무 또는 포지션", null));
+//        resultDto.setSummarizedSections(summarizedSections);
+
+        // ✅ 요약 섹션 4개 추출
+        List<String> summarizedSections = extractFourMainSections(processedFinalSummary);
         resultDto.setSummarizedSections(summarizedSections);
 
         return resultDto;
     }
 
+    private String convertMarkdownToNumbered(String finalSummary) {
+        Map<String, String> headerMap = Map.of(
+                "## 핵심 강점", "1. 핵심 강점",
+                "## 보완할 점 또는 약점", "2. 보완할 점 또는 약점",
+                "## 기술 스택 요약", "3. 기술 스택 요약",
+                "## 추천 직무 또는 포지션", "4. 추천 직무 또는 포지션"
+        );
+
+        for (Map.Entry<String, String> entry : headerMap.entrySet()) {
+            finalSummary = finalSummary.replace(entry.getKey(), entry.getValue());
+        }
+        return finalSummary;
+    }
+
     private List<String> extractSection(String text, String startPattern, String endPattern) {
         String section = "";
         try {
-            String regex = startPattern + "([\\s\\S]*?)" + (endPattern != null ? endPattern : "$");
+            String regex = "(?m)^" + startPattern + "\\s*\\n+([\\s\\S]*?)" + (endPattern != null ? "(?=^" + endPattern + "\\s*)" : "$");
             Pattern pattern = Pattern.compile(regex);
             Matcher matcher = pattern.matcher(text);
             if (matcher.find()) {
@@ -169,13 +198,6 @@ public class ResumeService {
         return Arrays.stream(section.split("[\\n\\r]+"))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
-                // "또는 약점:" 혹은 "또는 포지션:"으로 시작하는 문장 제거
-                .filter(s -> !s.startsWith("또는 약점"))
-                .filter(s -> !s.startsWith("또는 포지션"))
-                .filter(s -> !s.equals(":"))
-                // 기존 접두어 제거
-                .map(s -> s.replaceAll("^(?:[0-9]+\\.|[-*•])?\\s*(?:[가-힣a-zA-Z]+\\s*[:：])?", ""))
-                .filter(s -> !s.isBlank())
                 .toList();
     }
 
@@ -226,6 +248,26 @@ public class ResumeService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 resumeId: " + resumeId));
 
         resume.updatePdfUrl(pdfUrl);
+    }
+
+    private List<String> extractFourMainSections(String finalSummary) {
+        List<String> sections = new ArrayList<>();
+        Pattern pattern = Pattern.compile(
+                "1\\. 핵심 강점\\s*\\n(.*?)\\n2\\. 보완할 점 또는 약점\\s*\\n(.*?)\\n3\\. 기술 스택 요약\\s*\\n(.*?)\\n4\\. 추천 직무 또는 포지션\\s*\\n(.*)",
+                Pattern.DOTALL
+        );
+        Matcher matcher = pattern.matcher(finalSummary);
+
+        if (matcher.find()) {
+            for (int i = 1; i <= 4; i++) {
+                String section = matcher.group(i).trim();
+                // 불릿(-) 제거 및 문장 정리 (선택적)
+                section = section.replaceAll("(?m)^\\s*-\\s*", "").trim();
+                sections.add(section);
+            }
+        }
+
+        return sections;
     }
 }
 
