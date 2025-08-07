@@ -148,6 +148,11 @@ technical_keywords:
     Docker: 0.85
     CI/CD: 0.8
     JUnit: 0.7
+    MyBatis: 0.8
+    GraphQL: 0.8
+    Kafka: 0.85
+    API Gateway: 0.8
+    WebSocket: 0.9
 
   FRONTEND:
     React: 0.95
@@ -165,6 +170,11 @@ technical_keywords:
     REST API 연동: 0.85
     React Query: 0.7
     접근성: 0.75
+    Recoil: 0.7
+    PWA 개발: 0.65
+    Emotion: 0.7
+    D3.js: 0.75
+    Cypress: 0.65
 
   MOBILE:
     Android: 0.9
@@ -182,6 +192,11 @@ technical_keywords:
     Jetpack Compose: 0.7
     앱 보안: 0.75
     위치기반 서비스: 0.65
+    CoreData: 0.7
+    ARKit: 0.65
+    앱 분석(Analytics): 0.7
+    네이티브 모듈 개발: 0.75
+    서버와 실시간 통신: 0.65
 
   DESIGN:
     Figma: 0.9
@@ -199,6 +214,11 @@ technical_keywords:
     스타일가이드 제작: 0.7
     A/B 테스트: 0.65
     타이포그래피: 0.7
+    모션 그래픽: 0.75
+    아이콘 디자인: 0.8
+    마이크로 인터랙션: 0.7
+    리디자인 경험: 0.65
+    시각적 계층 구조 설계: 0.7
 
   CLOUD:
     AWS EC2/S3: 0.95
@@ -216,6 +236,11 @@ technical_keywords:
     Auto Scaling: 0.75
     컨테이너 오케스트레이션: 0.75
     비용 최적화: 0.65
+    CloudFront: 0.7
+    S3정책설계: 0.7
+    Secret Manager: 0.75
+    CDN 구축: 0.75
+    로드밸런서 관리: 0.65
 
   DATA_ANALYSIS:
     Python (Pandas): 0.9
@@ -233,6 +258,11 @@ technical_keywords:
     시계열 분석: 0.7
     빅데이터 처리: 0.8
     데이터 파이프라인: 0.8
+    Spark: 0.7
+    데이터 마이닝: 0.7
+    모델 배포(MLOps): 0.7
+    텍스트마이닝: 0.8
+    데이터 클린징: 0.8
 
   BLOCKCHAIN:
     Solidity: 0.85
@@ -250,6 +280,11 @@ technical_keywords:
     콘센서스 알고리즘: 0.75
     체인코드 개발: 0.7
     블록체인 마케팅: 0.6
+    Layer2 솔루션: 0.7
+    오라클: 0.7
+    블록 익스플로러 연동: 0.75
+    공개키/개인키 관리: 0.7
+    토큰 이코노미 설계: 0.6
 
   GAME:
     Unity: 0.85
@@ -267,6 +302,11 @@ technical_keywords:
     모바일게임 최적화: 0.7
     유저 수익화: 0.6
     QA/버그 테스트: 0.65
+    멀티플레이어 구현: 0.75
+    인앱 결제 연동: 0.65
+    이펙트 제작: 0.7
+    랭킹 시스템: 0.6
+    라이브서비스 운영: 0.65
 
   MARKETING:
     SEO: 0.85
@@ -284,3 +324,8 @@ technical_keywords:
     고객 세분화: 0.6
     AARRR 퍼널: 0.6
     인플루언서 마케팅: 0.6
+    바이럴 캠페인: 0.65
+    리타겟팅 광고: 0.6
+    마켓 리서치: 0.6
+    고객충성도 프로그램: 0.6
+    브랜드 모니터링: 0.6
