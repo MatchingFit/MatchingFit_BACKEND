@@ -47,17 +47,18 @@ def save_resume_info_to_db(
         file_url: str,
         text_s3_url: str,
         preview_text: str,
-        job_field: str
+        job_field: str,
+        resume_name: str
 ) -> int:
     try:
         with psycopg2.connect(DATABASE_URL) as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO resumes (
-                        user_id, file_url, text_s3_url, preview_text, job_field
-                    ) VALUES (%s, %s, %s, %s, %s)
+                        user_id, file_url, text_s3_url, preview_text, job_field, name
+                    ) VALUES (%s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (user_id, file_url, text_s3_url, preview_text, job_field))
+                """, (user_id, file_url, text_s3_url, preview_text, job_field, resume_name))
                 resume_id = cursor.fetchone()[0]
                 return resume_id
     except Exception as e:
