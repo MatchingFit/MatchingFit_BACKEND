@@ -1,5 +1,6 @@
 package com.example.matching_fit.domain.resume.repository;
 
+import com.example.matching_fit.domain.resume.dto.ResumeOverviewDto;
 import com.example.matching_fit.domain.resume.dto.ResumeSummaryDto;
 import com.example.matching_fit.domain.resume.dto.ResumeTextDto;
 import com.example.matching_fit.domain.resume.entity.Resume;
@@ -25,4 +26,8 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
             "WHERE rm.manager.id = :managerId " +
             "ORDER BY rm.createdAt DESC")
     List<ResumeSummaryDto> findResumesByManagerId(@Param("managerId") Long managerId);
+
+    @Query("SELECT new com.example.matching_fit.domain.resume.dto.ResumeOverviewDto(r.name, r.fileUrl, r.jobField, r.updatedAt, r.pdfUrl) " +
+            "FROM Resume r WHERE r.user.id = :userId")
+    List<ResumeOverviewDto> findOverviewsByUserId(Long userId);
 }
