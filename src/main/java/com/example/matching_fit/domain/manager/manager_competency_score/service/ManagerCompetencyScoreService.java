@@ -16,6 +16,7 @@ import com.example.matching_fit.domain.score.repository.CompetencyScoreRepositor
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.Role;
 import com.example.matching_fit.domain.user.repository.UserRepository;
+import com.example.matching_fit.domain.user.service.EmailService;
 import com.example.matching_fit.global.security.rq.Rq;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class ManagerCompetencyScoreService {
     private final Rq rq;
     private final ResumeMatchingResultRepository resumeMatchingResultRepository;
     private final CompetencyScoreRepository competencyScoreRepository;
+    private final EmailService emailService;
 
     @Transactional
     public ResumeMatchingResultDto matchResumesByFullRanking(Map<String, Integer> scores) {
@@ -144,6 +146,8 @@ public class ManagerCompetencyScoreService {
                             .orElseThrow(() -> new EntityNotFoundException("User not found"));
                     Resume resume = resumeRepository.findById(dto.getResumeId())
                             .orElseThrow(() -> new EntityNotFoundException("Resume not found"));
+
+                    emailService.sendResumeMatchedEmail(user.getEmail(), resume.getName(), manager.getCompanyName(), manager.getName());
 
                     return ResumeMatchingResult.builder()
                             .manager(manager)
