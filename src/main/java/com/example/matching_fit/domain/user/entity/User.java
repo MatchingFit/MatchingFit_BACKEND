@@ -44,6 +44,11 @@ public class User{
     private Role role;
     @CreatedDate
     private LocalDateTime createdAt;
+    @Column(name = "job_role")
+    private String jobRole;
+    @Column(name = "job_category")
+    private String jobCategory;
+    private String career;
 
     public User(long id, String email, String name) {
         this.setId(id);

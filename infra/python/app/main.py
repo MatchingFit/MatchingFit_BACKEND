@@ -38,6 +38,7 @@ async def process_resume(
         file: UploadFile = File(...),
         job_field: str = Form(...),
         user_id: str = Form(...),
+        resume_name: str = Form(...)
 ):
     try:
         user_id_int = int(user_id)
@@ -56,7 +57,8 @@ async def process_resume(
             file_url=file_url,
             text_s3_url=text_url,
             preview_text=preview,
-            job_field=job_field
+            job_field=job_field,
+            resume_name=resume_name
         )
 
         logger.info(f"🚀 이력서 분석 시작: resumeId={resume_id}, 임베딩 길이={len(embedding)}")

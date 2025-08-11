@@ -1,6 +1,8 @@
 package com.example.matching_fit.domain.user.service;
 import com.example.matching_fit.domain.user.dto.ManagerJoinRequestDto;
+import com.example.matching_fit.domain.user.dto.UserInfoUpdateRequest;
 import com.example.matching_fit.domain.user.dto.UserJoinRequestDto;
+import com.example.matching_fit.domain.user.dto.UserUpdateRequest;
 import com.example.matching_fit.domain.user.entity.User;
 import com.example.matching_fit.domain.user.enums.LoginType;
 import com.example.matching_fit.domain.user.enums.Role;
@@ -243,6 +245,20 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
+    @Transactional
+    public void updateUserInfo(Long userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserInfoUpdateRequest userInfo = request.getUserInfo();
+
+        if (userInfo.getName() != null) {
+            user.setName(userInfo.getName());
+        }
+        user.setJobRole(userInfo.getJobRole());         // 빈 문자열도 허용
+        user.setJobCategory(userInfo.getJobCategory()); // 빈 문자열도 허용
+        user.setCareer(userInfo.getCareer());           // 빈 문자열도 허용
+    }
 
 
 

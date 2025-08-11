@@ -16,5 +16,8 @@ public class UserInfoDto {
     private LoginType loginType;
     private LocalDateTime createdAt;
     private String role;
+    private String jobRole;
+    private String jobCategory;
+    private String career;
 
 }

@@ -155,9 +155,22 @@ public class UserController {
                 .loginType(user.getLoginType())
                 .createdAt(user.getCreatedAt())
                 .role(user.getRole().name())
+                .jobCategory(user.getJobCategory())
+                .jobRole(user.getJobRole())
+                .career(user.getCareer())
                 .build();
 
         return ResponseEntity.ok(ApiResponse.success(userInfoDto, "정보 불러오기 성공!!"));
     }
+
+    @PutMapping("/edit")
+    public ResponseEntity<ApiResponse<?>> updateUserInfo(
+            @RequestBody UserUpdateRequest request
+    ) {
+        userService.updateUserInfo(rq.getActor().getId(), request);
+        return ResponseEntity.ok(ApiResponse.success(request, "회원 정보 수정 성공!"));
+    }
+
+
 
 }
